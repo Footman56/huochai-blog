@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Posts on 火柴的博客</title>
+        <link>http://www.huochai.xyz/posts/</link>
+        <description>Recent content in Posts on 火柴的博客</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en-us</language>
+        <lastBuildDate>Fri, 25 Nov 2022 22:33:06 +0800</lastBuildDate><atom:link href="http://www.huochai.xyz/posts/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>My First Blog</title>
+        <link>http://www.huochai.xyz/posts/my-first-blog/</link>
+        <pubDate>Fri, 25 Nov 2022 22:33:06 +0800</pubDate>
+        
+        <guid>http://www.huochai.xyz/posts/my-first-blog/</guid>
+        <description>&lt;p&gt;这是第一篇博客测试&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>

@@ -1,4 +1,4 @@
-baseurl: https://www.huochai.xyz
+baseurl: https://blog.huochai.xyz
 languageCode: en-us
 theme: theme-stack-huochai
 paginate: 5
@@ -60,7 +60,7 @@ params:
 
     comments:
         enabled: true
-        provider: disqus
+        provider: waline
 
         disqusjs:
             shortname:
@@ -89,17 +89,22 @@ params:
 
         # Waline client configuration see: https://waline.js.org/en/reference/component.html
         waline:
-            serverURL:
-            lang:
-            pageview:
+            serverURL: https://waline.huochai.xyz
+            lang: zh-CN
+            visitor: false
+            pageview: true
+            comment: true
+            reaction: true
+            search: true
+            dark: auto
             emoji:
-                - https://unpkg.com/@waline/emojis@1.0.1/weibo
+                - https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo
             requiredMeta:
                 - name
                 - email
                 - url
             locale:
-                admin: Admin
+                admin: Kerm
                 placeholder:
 
         twikoo:

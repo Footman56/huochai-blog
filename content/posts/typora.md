@@ -1,10 +1,10 @@
 ---
 title: "Typora"
 date: 2022-11-28T14:56:46+08:00
-draft: true
+draft: false
 ---
 
-在typo 中书写博客
+在typora 中书写博客
 
 # 一、 需要掌握markdown 语法
 

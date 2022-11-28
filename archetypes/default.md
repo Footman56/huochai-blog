@@ -1,11 +1,10 @@
 ---
 title: "{{ replace .Name "-" " " | title }}"
 date: {{ .Date }}
-draft: true
----
-
+draft: false
 
 typora-root-url: ../../static
-typora-copy-images-to: ../../static/img
+typora-copy-images-to: ../../static/images
 
 categories: ["{{ trim (replace .File.Dir "posts/" "") "/" }}"]
+---

@@ -1,4 +1,4 @@
-baseurl: http://www.huochai.xyz
+baseurl: https://www.huochai.xyz
 languageCode: en-us
 theme: hugo-theme-stack
 paginate: 5

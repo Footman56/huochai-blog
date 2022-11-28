@@ -1,6 +1,6 @@
 baseurl: https://www.huochai.xyz
 languageCode: en-us
-theme: hugo-theme-stack
+theme: theme-stack-huochai
 paginate: 5
 title: 火柴的博客
 

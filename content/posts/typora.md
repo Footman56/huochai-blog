@@ -12,6 +12,8 @@ draft: false
 
 在插入图片的时候，同时将图片复制到网站根目录 static/images 里面
 
-<img src="/images/image-20221128145938273.png" alt="image-20221128145938273" style="zoom:50%;" />
+![picgo](https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281802610.png)
 
 # 三、目录设置
+
+![image-20221128180614961](https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281806039.png)

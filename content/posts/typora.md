@@ -2,6 +2,9 @@
 title: "Typora"
 date: 2022-11-28T14:56:46+08:00
 draft: false
+
+categories: ["java","Nashorn","JavaScript"]
+
 ---
 
 在typora 中书写博客

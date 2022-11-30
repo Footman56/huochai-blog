@@ -13,7 +13,7 @@ categories: ["java","Nashorn","JavaScript"]
 
 项目中使用的是 Nashorn 引擎，
 
-[Nashorn官网]: https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136
+[Nashorn官网] (https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136)
 
 # 使用
 

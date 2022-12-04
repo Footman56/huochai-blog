@@ -13,7 +13,9 @@ categories: ["java","Nashorn","JavaScript"]
 
 项目中使用的是 Nashorn 引擎，
 
-[Nashorn官网] (https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136)
+[Nashorn官网](https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136)
+
+
 
 # 使用
 
@@ -105,3 +107,43 @@ put方法就是向解析器注册一个变量、函数
 举例： + 运算符对应 字符串来说就是拼接，对于Double 就是相加运算
 
 再举例： > 运算符对于 字段串来说 “5”> "10" true
+
+
+
+# 引入js 文件
+
+Nashorn 引擎支持引入js 文件，引入文件之后就可以使用文件内定义的方法 
+
+```java
+String filePath = "/Users/peilizhi/node_modules/bignumber.js/bignumber.js";
+// 绑定脚本文件
+File file = new File(filePath);
+engine.eval(new FileReader(file));
+```
+
+ 之后再执行的时候就可以使用里面的 BigNumber 函数了
+
+```java
+String foumlation = "得分 = IF(new BigNumber(目标值).minus(完成值) > 0.4390,100,200) + 挑战值 * 实际值 / 数量" ;
+engine.eval(foumlation);
+```
+
+# 精确计算
+
+Js 计算的时候会出现缺失精度的问题
+
+![image-20221201150548115](https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202212011505674.png)
+
+这个时候就需要使用BigNumber 函数来进行精确计算
+
+```js
+new BigNumber(1).minus(new BigNumber(0.44))
+```
+
+此时返回的是BigNumber 并不是java熟知的对象，因此需要调用获取结果的接口
+
+```js
+Double  num = new BigNumber(1).toNumber()
+```
+
+ 

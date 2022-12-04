@@ -28,6 +28,10 @@ permalinks:
     page: /:slug/
 
 
+taxonomies:
+    tag: tags
+    category: categories
+
 
 params:
     mainSections:
@@ -128,7 +132,7 @@ params:
 
         # Available values: auto, light, dark
         default: auto
-
+    
     imageProcessing:
         cover:
             enabled: true
@@ -156,7 +160,7 @@ markup:
     goldmark:
         renderer:
             ## Set to true if you have HTML content inside Markdown
-            unsafe: false
+            unsafe: true
     tableOfContents:
         endLevel: 4
         ordered: true

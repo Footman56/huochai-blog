@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='MyBatis 的配置文件包含了会深深影响 MyBatis 行为的设置和属性信息。 配置文档的顶层结构如下：
+configuration（配置） properties（属性） settings（设置） typeAliases（类型别名） typeHandlers（类型处理器） objectFactory（对象工厂） plugins（插件） environments（环境配置） environment（环境变量） transactionManager（事务管理器） dataSource（数据源） databaseIdProvider（数据库厂商标识） mappers（映射器） 属性（properties） 作用： 将一些常见的参数整理处理，方便管理
+**这些属性可以在外部进行配置，并可以进行动态替换。**你既可以在典型的 Java 属性文件中配置这些属性，也可以在 properties 元素的子元素中设置。
+怎么用： 1 2 3 4 5 6 7 8 9 10 11 12 13 &amp;lt;!---定义---&amp;gt; &amp;lt;properties resource=&amp;#34;org/mybatis/example/config.properties&amp;#34;&amp;gt; &amp;lt;property name=&amp;#34;username&amp;#34; value=&amp;#34;dev_user&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;password&amp;#34; value=&amp;#34;F2Fa3!33TYyg&amp;#34;/&amp;gt; &amp;lt;/properties&amp;gt; &amp;lt;!---使用---&amp;gt; &amp;lt;dataSource type=&amp;#34;POOLED&amp;#34;&amp;gt; &amp;lt;property name=&amp;#34;driver&amp;#34; value=&amp;#34;${driver}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;url&amp;#34; value=&amp;#34;${url}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;username&amp;#34; value=&amp;#34;${username}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;password&amp;#34; value=&amp;#34;${password}&amp;#34;/&amp;gt; &amp;lt;/dataSource&amp;gt; 也可以在java构造代码中传入属性值
+1 2 3 4 5 SqlSessionFactory factory = new SqlSessionFactoryBuilder().'>
+<title>配置</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mybatis/%E9%85%8D%E7%BD%AE/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='配置'>
+<meta property='og:description' content='MyBatis 的配置文件包含了会深深影响 MyBatis 行为的设置和属性信息。 配置文档的顶层结构如下：
+configuration（配置） properties（属性） settings（设置） typeAliases（类型别名） typeHandlers（类型处理器） objectFactory（对象工厂） plugins（插件） environments（环境配置） environment（环境变量） transactionManager（事务管理器） dataSource（数据源） databaseIdProvider（数据库厂商标识） mappers（映射器） 属性（properties） 作用： 将一些常见的参数整理处理，方便管理
+**这些属性可以在外部进行配置，并可以进行动态替换。**你既可以在典型的 Java 属性文件中配置这些属性，也可以在 properties 元素的子元素中设置。
+怎么用： 1 2 3 4 5 6 7 8 9 10 11 12 13 &amp;lt;!---定义---&amp;gt; &amp;lt;properties resource=&amp;#34;org/mybatis/example/config.properties&amp;#34;&amp;gt; &amp;lt;property name=&amp;#34;username&amp;#34; value=&amp;#34;dev_user&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;password&amp;#34; value=&amp;#34;F2Fa3!33TYyg&amp;#34;/&amp;gt; &amp;lt;/properties&amp;gt; &amp;lt;!---使用---&amp;gt; &amp;lt;dataSource type=&amp;#34;POOLED&amp;#34;&amp;gt; &amp;lt;property name=&amp;#34;driver&amp;#34; value=&amp;#34;${driver}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;url&amp;#34; value=&amp;#34;${url}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;username&amp;#34; value=&amp;#34;${username}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;password&amp;#34; value=&amp;#34;${password}&amp;#34;/&amp;gt; &amp;lt;/dataSource&amp;gt; 也可以在java构造代码中传入属性值
+1 2 3 4 5 SqlSessionFactory factory = new SqlSessionFactoryBuilder().'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mybatis/%E9%85%8D%E7%BD%AE/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-12-04T23:50:16&#43;08:00'/><meta property='article:modified_time' content='2022-12-04T23:50:16&#43;08:00'/>
+<meta name="twitter:title" content="配置">
+<meta name="twitter:description" content="MyBatis 的配置文件包含了会深深影响 MyBatis 行为的设置和属性信息。 配置文档的顶层结构如下：
+configuration（配置） properties（属性） settings（设置） typeAliases（类型别名） typeHandlers（类型处理器） objectFactory（对象工厂） plugins（插件） environments（环境配置） environment（环境变量） transactionManager（事务管理器） dataSource（数据源） databaseIdProvider（数据库厂商标识） mappers（映射器） 属性（properties） 作用： 将一些常见的参数整理处理，方便管理
+**这些属性可以在外部进行配置，并可以进行动态替换。**你既可以在典型的 Java 属性文件中配置这些属性，也可以在 properties 元素的子元素中设置。
+怎么用： 1 2 3 4 5 6 7 8 9 10 11 12 13 &amp;lt;!---定义---&amp;gt; &amp;lt;properties resource=&amp;#34;org/mybatis/example/config.properties&amp;#34;&amp;gt; &amp;lt;property name=&amp;#34;username&amp;#34; value=&amp;#34;dev_user&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;password&amp;#34; value=&amp;#34;F2Fa3!33TYyg&amp;#34;/&amp;gt; &amp;lt;/properties&amp;gt; &amp;lt;!---使用---&amp;gt; &amp;lt;dataSource type=&amp;#34;POOLED&amp;#34;&amp;gt; &amp;lt;property name=&amp;#34;driver&amp;#34; value=&amp;#34;${driver}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;url&amp;#34; value=&amp;#34;${url}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;username&amp;#34; value=&amp;#34;${username}&amp;#34;/&amp;gt; &amp;lt;property name=&amp;#34;password&amp;#34; value=&amp;#34;${password}&amp;#34;/&amp;gt; &amp;lt;/dataSource&amp;gt; 也可以在java构造代码中传入属性值
+1 2 3 4 5 SqlSessionFactory factory = new SqlSessionFactoryBuilder().">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#属性properties">属性（properties）</a>
+      <ol>
+        <li><a href="#作用">作用：</a></li>
+        <li><a href="#怎么用">怎么用：</a></li>
+        <li><a href="#顺序加载">顺序加载</a></li>
+        <li><a href="#默认值">默认值</a></li>
+      </ol>
+    </li>
+    <li><a href="#设置settings">设置（settings）</a>
+      <ol>
+        <li><a href="#作用-1">作用</a></li>
+      </ol>
+    </li>
+    <li><a href="#类型别名typealiases">类型别名（typeAliases）</a>
+      <ol>
+        <li><a href="#作用-2">作用</a></li>
+      </ol>
+    </li>
+    <li><a href="#类型处理器typehandlers">类型处理器（typeHandlers）</a>
+      <ol>
+        <li><a href="#作用-3">作用</a></li>
+        <li><a href="#使用">使用</a></li>
+      </ol>
+    </li>
+    <li><a href="#对象工厂objectfactory">对象工厂（objectFactory）</a>
+      <ol>
+        <li><a href="#作用-4">作用</a></li>
+      </ol>
+    </li>
+    <li><a href="#插件">插件</a>
+      <ol>
+        <li><a href="#作用-5">作用</a></li>
+        <li><a href="#使用-1">使用</a></li>
+      </ol>
+    </li>
+    <li><a href="#环境配置environments">环境配置（environments）</a>
+      <ol>
+        <li><a href="#作用-6">作用</a></li>
+      </ol>
+    </li>
+    <li><a href="#使用-2">使用</a>
+      <ol>
+        <li><a href="#事务管理器transactionmanager">事务管理器(transactionManager）</a></li>
+        <li><a href="#数据源datasource"><strong>数据源（dataSource）</strong></a></li>
+      </ol>
+    </li>
+    <li><a href="#映射器mappers">映射器（mappers）</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" >
+                数据库
+            </a>
+        
+            <a href="/categories/mybatis/" >
+                mybatis
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mybatis/%E9%85%8D%E7%BD%AE/">配置</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 04, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 7 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>MyBatis 的配置文件包含了会深深影响 MyBatis 行为的设置和属性信息。 配置文档的顶层结构如下：</p>
+<ul>
+<li>configuration（配置）
+<ul>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#properties"  target="_blank" rel="noopener"
+    >properties（属性）</a></li>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#settings"  target="_blank" rel="noopener"
+    >settings（设置）</a></li>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#typeAliases"  target="_blank" rel="noopener"
+    >typeAliases（类型别名）</a></li>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#typeHandlers"  target="_blank" rel="noopener"
+    >typeHandlers（类型处理器）</a></li>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#objectFactory"  target="_blank" rel="noopener"
+    >objectFactory（对象工厂）</a></li>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#plugins"  target="_blank" rel="noopener"
+    >plugins（插件）</a></li>
+<li>environments（环境配置）
+<ul>
+<li>environment（环境变量）
+<ul>
+<li>transactionManager（事务管理器）</li>
+<li>dataSource（数据源）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#databaseIdProvider"  target="_blank" rel="noopener"
+    >databaseIdProvider（数据库厂商标识）</a></li>
+<li><a class="link" href="https://mybatis.org/mybatis-3/zh/configuration.html#mappers"  target="_blank" rel="noopener"
+    >mappers（映射器）</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="属性properties">属性（properties）</h1>
+<h2 id="作用">作用：</h2>
+<p>将一些常见的参数整理处理，方便管理</p>
+<p>**这些属性可以在外部进行配置，并可以进行动态替换。**你既可以在典型的 Java 属性文件中配置这些属性，也可以在 properties 元素的子元素中设置。</p>
+<h2 id="怎么用">怎么用：</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!---定义---&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;properties</span> <span style="color:#a6e22e">resource=</span><span style="color:#e6db74">&#34;org/mybatis/example/config.properties&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;username&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;dev_user&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;password&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;F2Fa3!33TYyg&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/properties&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!---使用---&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;dataSource</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;POOLED&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;driver&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${driver}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;url&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${url}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;username&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${username}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;password&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${password}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/dataSource&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>也可以在java构造代码中传入属性值</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>SqlSessionFactory factory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SqlSessionFactoryBuilder<span style="color:#f92672">().</span><span style="color:#a6e22e">build</span><span style="color:#f92672">(</span>reader<span style="color:#f92672">,</span> props<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ... 或者 ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>SqlSessionFactory factory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SqlSessionFactoryBuilder<span style="color:#f92672">().</span><span style="color:#a6e22e">build</span><span style="color:#f92672">(</span>reader<span style="color:#f92672">,</span> environment<span style="color:#f92672">,</span> props<span style="color:#f92672">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="顺序加载">顺序加载</h2>
+<ul>
+<li>
+<p>首先读取在 properties 元素体内指定的属性。</p>
+</li>
+<li>
+<p>然后根据 properties 元素中的 resource 属性读取类路径下属性文件，或根据 url 属性指定的路径读取属性文件，并覆盖之前读取过的同名属性。</p>
+</li>
+<li>
+<p>最后读取作为方法参数传递的属性，并覆盖之前读取过的同名属性。</p>
+</li>
+</ul>
+<h2 id="默认值">默认值</h2>
+<p><strong>从 MyBatis 3.4.2 开始，你可以为占位符指定一个默认值。</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;dataSource</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;POOLED&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">&lt;!-- ... --&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;username&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${username:ut_user}&#34;</span><span style="color:#f92672">/&gt;</span> <span style="color:#75715e">&lt;!-- 如果属性 &#39;username&#39; 没有被配置，&#39;username&#39; 属性的值将为 &#39;ut_user&#39; --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/dataSource&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">&lt;!-- 开启默认值 --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;properties</span> <span style="color:#a6e22e">resource=</span><span style="color:#e6db74">&#34;org/mybatis/example/config.properties&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">&lt;!-- ... --&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;org.apache.ibatis.parsing.PropertyParser.enable-default-value&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;true&#34;</span><span style="color:#f92672">/&gt;</span> <span style="color:#75715e">&lt;!-- 启用默认值特性 --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/properties&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="设置settings">设置（settings）</h1>
+<h2 id="作用-1">作用</h2>
+<p>它们会改变 MyBatis 的运行时行为。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th style="text-align:left">设置名</th>
+<th style="text-align:left">描述</th>
+<th style="text-align:left">有效值</th>
+<th style="text-align:left">默认值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">cacheEnabled</td>
+<td style="text-align:left">全局性地开启或关闭所有映射器配置文件中已配置的任何缓存。</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">true</td>
+</tr>
+<tr>
+<td style="text-align:left">lazyLoadingEnabled</td>
+<td style="text-align:left">延迟加载的全局开关。当开启时，所有关联对象都会延迟加载。 特定关联关系中可通过设置 <code>fetchType</code> 属性来覆盖该项的开关状态。</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">false</td>
+</tr>
+<tr>
+<td style="text-align:left">aggressiveLazyLoading</td>
+<td style="text-align:left">开启时，任一方法的调用都会加载该对象的所有延迟加载属性。 否则，每个延迟加载属性会按需加载（参考 <code>lazyLoadTriggerMethods</code>)。</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">false （在 3.4.1 及之前的版本中默认为 true）</td>
+</tr>
+<tr>
+<td style="text-align:left">multipleResultSetsEnabled</td>
+<td style="text-align:left">是否允许单个语句返回多结果集（需要数据库驱动支持）。</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">true</td>
+</tr>
+<tr>
+<td style="text-align:left">useGeneratedKeys</td>
+<td style="text-align:left">允许 JDBC 支持自动生成主键，需要数据库驱动支持。如果设置为 true，将强制使用自动生成主键。尽管一些数据库驱动不支持此特性，但仍可正常工作（如 Derby）。</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">False</td>
+</tr>
+<tr>
+<td style="text-align:left">autoMappingBehavior</td>
+<td style="text-align:left">指定 MyBatis 应如何自动映射列到字段或属性。 NONE 表示关闭自动映射；PARTIAL 只会自动映射没有定义嵌套结果映射的字段。 FULL 会自动映射任何复杂的结果集（无论是否嵌套）。</td>
+<td style="text-align:left">NONE, PARTIAL, FULL</td>
+<td style="text-align:left">PARTIAL</td>
+</tr>
+<tr>
+<td style="text-align:left">defaultExecutorType</td>
+<td style="text-align:left">配置默认的执行器。SIMPLE 就是普通的执行器；REUSE 执行器会重用预处理语句（PreparedStatement）； BATCH 执行器不仅重用语句还会执行批量更新。</td>
+<td style="text-align:left">SIMPLE REUSE BATCH</td>
+<td style="text-align:left">SIMPLE</td>
+</tr>
+<tr>
+<td style="text-align:left">defaultStatementTimeout</td>
+<td style="text-align:left">设置超时时间，它决定数据库驱动等待数据库响应的秒数。</td>
+<td style="text-align:left">任意正整数</td>
+<td style="text-align:left">未设置 (null)</td>
+</tr>
+<tr>
+<td style="text-align:left">mapUnderscoreToCamelCase</td>
+<td style="text-align:left">是否开启驼峰命名自动映射，即从经典数据库列名 A_COLUMN 映射到经典 Java 属性名 aColumn。</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">False</td>
+</tr>
+<tr>
+<td style="text-align:left">localCacheScope</td>
+<td style="text-align:left">MyBatis 利用本地缓存机制（Local Cache）防止循环引用和加速重复的嵌套查询。 默认值为 SESSION，会缓存一个会话中执行的所有查询。 若设置值为 STATEMENT，本地缓存将仅用于执行语句，对相同 SqlSession 的不同查询将不会进行缓存。</td>
+<td style="text-align:left">SESSION | STATEMENT</td>
+<td style="text-align:left">SESSION</td>
+</tr>
+<tr>
+<td style="text-align:left">returnInstanceForEmptyRow</td>
+<td style="text-align:left">当返回行的所有列都是空时，MyBatis默认返回 <code>null</code>。 当开启这个设置时，MyBatis会返回一个空实例。 请注意，它也适用于嵌套的结果集（如集合或关联）。（新增于 3.4.2）</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">false</td>
+</tr>
+<tr>
+<td style="text-align:left">logPrefix</td>
+<td style="text-align:left">指定 MyBatis 增加到日志名称的前缀。</td>
+<td style="text-align:left">任何字符串</td>
+<td style="text-align:left">未设置</td>
+</tr>
+<tr>
+<td style="text-align:left">logImpl</td>
+<td style="text-align:left">指定 MyBatis 所用日志的具体实现，未指定时将自动查找。</td>
+<td style="text-align:left">SLF4J | LOG4J | LOG4J2 | JDK_LOGGING | COMMONS_LOGGING | STDOUT_LOGGING | NO_LOGGING</td>
+<td style="text-align:left">未设置</td>
+</tr>
+<tr>
+<td style="text-align:left">configurationFactory</td>
+<td style="text-align:left">指定一个提供 <code>Configuration</code> 实例的类。 这个被返回的 Configuration 实例用来加载被反序列化对象的延迟加载属性值。 这个类必须包含一个签名为<code>static Configuration getConfiguration()</code> 的方法。（新增于 3.2.3）</td>
+<td style="text-align:left">一个类型别名或完全限定类名。</td>
+<td style="text-align:left">未设置</td>
+</tr>
+<tr>
+<td style="text-align:left">shrinkWhitespacesInSql</td>
+<td style="text-align:left">从SQL中删除多余的空格字符。请注意，这也会影响SQL中的文字字符串。 (新增于 3.5.5)</td>
+<td style="text-align:left">true | false</td>
+<td style="text-align:left">false</td>
+</tr>
+</tbody>
+</table></div>
+<h1 id="类型别名typealiases">类型别名（typeAliases）</h1>
+<h2 id="作用-2">作用</h2>
+<p>类型别名可为 Java 类型设置一个缩写名字。 它仅用于 XML 配置，意在降低冗余的全限定类名书写。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;typeAliases&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;typeAlias</span> <span style="color:#a6e22e">alias=</span><span style="color:#e6db74">&#34;Author&#34;</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;domain.blog.Author&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;typeAlias</span> <span style="color:#a6e22e">alias=</span><span style="color:#e6db74">&#34;Blog&#34;</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;domain.blog.Blog&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;typeAlias</span> <span style="color:#a6e22e">alias=</span><span style="color:#e6db74">&#34;Comment&#34;</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;domain.blog.Comment&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;typeAlias</span> <span style="color:#a6e22e">alias=</span><span style="color:#e6db74">&#34;Post&#34;</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;domain.blog.Post&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;typeAlias</span> <span style="color:#a6e22e">alias=</span><span style="color:#e6db74">&#34;Section&#34;</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;domain.blog.Section&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;typeAlias</span> <span style="color:#a6e22e">alias=</span><span style="color:#e6db74">&#34;Tag&#34;</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;domain.blog.Tag&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/typeAliases&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果在包内有相同的使用规则，可以指定包名</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;typeAliases&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;package</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;domain.blog&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/typeAliases&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>每一个在包 domain.blog 中的 Java Bean，在没有注解的情况下，会使用 Bean 的首字母小写的非限定类名来作为它的别名。
+</span></span><span style="display:flex;"><span>@Alias(&#34;author&#34;)
+</span></span><span style="display:flex;"><span>public class Author {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="类型处理器typehandlers">类型处理器（typeHandlers）</h1>
+<h2 id="作用-3">作用</h2>
+<p>**MyBatis 在设置预处理语句（PreparedStatement）中的参数或从结果集中取出一个值时， 都会用类型处理器将获取到的值以合适的方式转换成 Java 类型。**指明如何转换成Java对象。</p>
+<h2 id="使用">使用</h2>
+<p>你可以重写已有的类型处理器或创建你自己的类型处理器来处理不支持的或非标准的类型。 具体做法为：实现 <code>org.apache.ibatis.type.TypeHandler</code> 接口， 或继承一个很便利的类 <code>org.apache.ibatis.type.BaseTypeHandler</code>， 并且可以（可选地）将它映射到一个 JDBC 类型。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// ExampleTypeHandler.java
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">@MappedJdbcTypes</span><span style="color:#f92672">(</span>JdbcType<span style="color:#f92672">.</span><span style="color:#a6e22e">VARCHAR</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ExampleTypeHandler</span> <span style="color:#66d9ef">extends</span> BaseTypeHandler<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setNonNullParameter</span><span style="color:#f92672">(</span>PreparedStatement ps<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> i<span style="color:#f92672">,</span> String parameter<span style="color:#f92672">,</span> JdbcType jdbcType<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> SQLException <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    ps<span style="color:#f92672">.</span><span style="color:#a6e22e">setString</span><span style="color:#f92672">(</span>i<span style="color:#f92672">,</span> parameter<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getNullableResult</span><span style="color:#f92672">(</span>ResultSet rs<span style="color:#f92672">,</span> String columnName<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> SQLException <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> rs<span style="color:#f92672">.</span><span style="color:#a6e22e">getString</span><span style="color:#f92672">(</span>columnName<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getNullableResult</span><span style="color:#f92672">(</span>ResultSet rs<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> columnIndex<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> SQLException <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> rs<span style="color:#f92672">.</span><span style="color:#a6e22e">getString</span><span style="color:#f92672">(</span>columnIndex<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getNullableResult</span><span style="color:#f92672">(</span>CallableStatement cs<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> columnIndex<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> SQLException <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cs<span style="color:#f92672">.</span><span style="color:#a6e22e">getString</span><span style="color:#f92672">(</span>columnIndex<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- mybatis-config.xml --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;typeHandlers&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;typeHandler</span> <span style="color:#a6e22e">handler=</span><span style="color:#e6db74">&#34;org.mybatis.example.ExampleTypeHandler&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/typeHandlers&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用上述的类型处理器将会覆盖已有的处理 Java String 类型的属性以及 VARCHAR 类型的参数和结果的类型处理器。 要注意 MyBatis 不会通过检测数据库元信息来决定使用哪种类型，所以你必须在参数和结果映射中指明字段是 VARCHAR 类型， 以使其能够绑定到正确的类型处理器上。<strong>这是因为 MyBatis 直到语句被执行时才清楚数据类型。</strong></p>
+<p>通过类型处理器的泛型，MyBatis 可以得知该类型处理器处理的 Java 类型，不过这种行为可以通过两种方法改变：</p>
+<ul>
+<li>在xml配置文件中通过 类型处理器的配置元素（typeHandler 元素）上增加一个 <code>javaType</code> 属性（比如：<code>javaType=&quot;String&quot;</code>）；</li>
+<li>在类型处理器的类上增加一个 <code>@MappedTypes</code> 注解指定与其关联的 Java 类型列表。 如果在 <code>javaType</code> 属性中也同时指定，则注解上的配置将被忽略。</li>
+</ul>
+<p>可以通过两种方式来指定关联的 JDBC 类型：</p>
+<ul>
+<li>
+<p>在xml配置文件中通过  类型处理器的配置元素上增加一个 <code>jdbcType</code> 属性（比如：<code>jdbcType=&quot;VARCHAR&quot;</code>）；</p>
+</li>
+<li>
+<p>在类型处理器的类上增加一个 <code>@MappedJdbcTypes</code> 注解指定与其关联的 JDBC 类型列表。 如果在 <code>jdbcType</code> 属性中也同时指定，则注解上的配置将被忽略。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>当在 ResultMap 中决定使用哪种类型处理器时，此时 Java 类型是已知的（从结果类型中获得），但是 JDBC 类型是未知的。 因此 Mybatis 使用 javaType=[Java 类型], jdbcType=null 的组合来选择一个类型处理器。 这意味着使用 @MappedJdbcTypes 注解可以限制类型处理器的作用范围，并且可以确保，除非显式地设置，否则类型处理器在 ResultMap 中将不会生效。 如果希望能在 ResultMap 中隐式地使用类型处理器，那么设置 @MappedJdbcTypes 注解的 includeNullJdbcType=true 即可。 然而从 Mybatis 3.4.0 开始，如果某个 Java 类型只有一个注册的类型处理器，即使没有设置 includeNullJdbcType=true，那么这个类型处理器也会是 ResultMap 使用 Java 类型时的默认处理器。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>也可以一个类型处理器来处理多个java类型</p>
+<p>为了使用泛型类型处理器， 需要增加一个接受该类的 class 作为参数的构造器，这样 MyBatis 会在构造一个类型处理器实例的时候传入一个具体的类。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">//GenericTypeHandler.java
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GenericTypeHandler</span><span style="color:#f92672">&lt;</span>E <span style="color:#66d9ef">extends</span> MyObject<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">extends</span> BaseTypeHandler<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">private</span> Class<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> type<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">GenericTypeHandler</span><span style="color:#f92672">(</span>Class<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> type<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>type <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalArgumentException<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Type argument cannot be null&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">type</span> <span style="color:#f92672">=</span> type<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="对象工厂objectfactory">对象工厂（objectFactory）</h1>
+<h2 id="作用-4">作用</h2>
+<p>每次 MyBatis 创建结果对象的新实例时，它都会使用一个对象工厂（ObjectFactory）实例来完成实例化工作。 默认的对象工厂需要做的仅仅是实例化目标类，要么通过默认无参构造方法，要么通过存在的参数映射来调用带有参数的构造方法。 如果想覆盖对象工厂的默认行为，可以通过创建自己的对象工厂来实现。用于定制构造对象的方法</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// ExampleObjectFactory.java
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ExampleObjectFactory</span> <span style="color:#66d9ef">extends</span> DefaultObjectFactory <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">create</span><span style="color:#f92672">(</span>Class type<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">super</span><span style="color:#f92672">.</span><span style="color:#a6e22e">create</span><span style="color:#f92672">(</span>type<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">create</span><span style="color:#f92672">(</span>Class type<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>Class<span style="color:#f92672">&gt;</span> constructorArgTypes<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span> constructorArgs<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">super</span><span style="color:#f92672">.</span><span style="color:#a6e22e">create</span><span style="color:#f92672">(</span>type<span style="color:#f92672">,</span> constructorArgTypes<span style="color:#f92672">,</span> constructorArgs<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setProperties</span><span style="color:#f92672">(</span>Properties properties<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">super</span><span style="color:#f92672">.</span><span style="color:#a6e22e">setProperties</span><span style="color:#f92672">(</span>properties<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">isCollection</span><span style="color:#f92672">(</span>Class<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> type<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> Collection<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">isAssignableFrom</span><span style="color:#f92672">(</span>type<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>使用
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;!--</span> mybatis<span style="color:#f92672">-</span>config<span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span> <span style="color:#f92672">--&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;</span>objectFactory type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.mybatis.example.ExampleObjectFactory&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;</span>property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;someProperty&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;100&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/</span>objectFactory<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="插件">插件</h1>
+<h2 id="作用-5">作用</h2>
+<p>MyBatis 允许你在映射语句执行过程中的某一点进行拦截调用。默认情况下，<strong>MyBatis 允许使用插件来拦截的方法调用包括</strong></p>
+<ul>
+<li>
+<p>Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)</p>
+</li>
+<li>
+<p>ParameterHandler (getParameterObject, setParameters)</p>
+</li>
+<li>
+<p>ResultSetHandler (handleResultSets, handleOutputParameters)</p>
+</li>
+<li>
+<p>StatementHandler (prepare, parameterize, batch, update, query)</p>
+<p>这里面的方法都可以被拦截</p>
+</li>
+</ul>
+<h2 id="使用-1">使用</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// 指明对哪个类哪个接口进行拦截
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">@Intercepts</span><span style="color:#f92672">({</span><span style="color:#a6e22e">@Signature</span><span style="color:#f92672">(</span>
+</span></span><span style="display:flex;"><span>  type<span style="color:#f92672">=</span> Executor<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span>
+</span></span><span style="display:flex;"><span>  method <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;update&#34;</span><span style="color:#f92672">,</span>
+</span></span><span style="display:flex;"><span>  args <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>MappedStatement<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span>Object<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">})})</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ExamplePlugin</span> <span style="color:#66d9ef">implements</span> Interceptor <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">private</span> Properties properties <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Properties<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">intercept</span><span style="color:#f92672">(</span>Invocation invocation<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Throwable <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// implement pre processing if need
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    Object returnObject <span style="color:#f92672">=</span> invocation<span style="color:#f92672">.</span><span style="color:#a6e22e">proceed</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// implement post processing if need
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> returnObject<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setProperties</span><span style="color:#f92672">(</span>Properties properties<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">properties</span> <span style="color:#f92672">=</span> properties<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- mybatis-config.xml --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;plugins&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;plugin</span> <span style="color:#a6e22e">interceptor=</span><span style="color:#e6db74">&#34;org.mybatis.example.ExamplePlugin&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;someProperty&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;100&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;/plugin&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/plugins&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上面的插件将会拦截在 Executor 实例中所有的 “update” 方法调用， 这里的 Executor 是负责执行底层映射语句的内部对象。</p>
+<h1 id="环境配置environments">环境配置（environments）</h1>
+<h2 id="作用-6">作用</h2>
+<p>MyBatis 可以配置成适应多种环境，这种机制有助于将 SQL 映射应用于多种数据库之中， 现实情况下有多种理由需要这么做。例如，开发、测试和生产环境需要有不同的配置。管理不同环境使用不同的配置</p>
+<p><strong>尽管可以配置多个环境，但每个 SqlSessionFactory 实例只能选择一种环境。</strong></p>
+<p><strong>每个数据库对应一个 SqlSessionFactory 实例</strong></p>
+<p>在java配置中通过传入参数的类型来选择数据库环境</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>SqlSessionFactory factory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SqlSessionFactoryBuilder<span style="color:#f92672">().</span><span style="color:#a6e22e">build</span><span style="color:#f92672">(</span>reader<span style="color:#f92672">,</span> environment<span style="color:#f92672">,</span> properties<span style="color:#f92672">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="使用-2">使用</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!--使用的默认环境---&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;environments</span> <span style="color:#a6e22e">default=</span><span style="color:#e6db74">&#34;development&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">&lt;!--环境id---&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;environment</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;development&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#75715e">&lt;!--事务管理器---&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;transactionManager</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;JDBC&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;...&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;...&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/transactionManager&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#75715e">&lt;!--数据源---&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dataSource</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;POOLED&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;driver&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${driver}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;url&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${url}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;username&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${username}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;password&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${password}&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dataSource&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;/environment&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/environments&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="事务管理器transactionmanager">事务管理器(transactionManager）</h2>
+<ul>
+<li>
+<p>JDBC – 这个配置直接使用了 JDBC 的提交和回滚设施，它依赖从数据源获得的连接来管理事务作用域。</p>
+</li>
+<li>
+<p>MANAGED – 这个配置几乎没做什么。它从不提交或回滚一个连接，而是让容器来管理事务的整个生命周期（比如 JEE 应用服务器的上下文）。</p>
+<p>默认情况下它会关闭连接。然而一些容器并不希望连接被关闭，因此需要将 closeConnection 属性设置为 false 来阻止默认的关闭行为</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;transactionManager</span> <span style="color:#a6e22e">type=</span><span style="color:#e6db74">&#34;MANAGED&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;closeConnection&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;false&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/transactionManager&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+</li>
+</ul>
+<p><strong>正在使用 Spring + MyBatis，则没有必要配置事务管理器，因为 Spring 模块会使用自带的管理器来覆盖前面的配置。</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;beans</span> <span style="color:#a6e22e">xmlns=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xmlns:xsi=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xmlns:context=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/context&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xmlns:aop=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/aop&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xsi:schemaLocation=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">           http://www.springframework.org/schema/context
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;sessionFactory&#34;</span>  
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.springframework.orm.hibernate3.LocalSessionFactoryBean&#34;</span><span style="color:#f92672">&gt;</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;configLocation&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;classpath:hibernate.cfg.xml&#34;</span> <span style="color:#f92672">/&gt;</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;configurationClass&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;org.hibernate.cfg.AnnotationConfiguration&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/bean&gt;</span>  
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">&lt;!-- 定义事务管理器（声明式的事务） --&gt;</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;transactionManager&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.springframework.orm.hibernate3.HibernateTransactionManager&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;sessionFactory&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;sessionFactory&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/bean&gt;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">&lt;!-- 配置DAO --&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;userDaoTarget&#34;</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;com.bluesky.spring.dao.UserDaoImpl&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;sessionFactory&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;sessionFactory&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/bean&gt;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;userDao&#34;</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.springframework.transaction.interceptor.TransactionProxyFactoryBean&#34;</span><span style="color:#f92672">&gt;</span>  
+</span></span><span style="display:flex;"><span>           <span style="color:#75715e">&lt;!-- 配置事务管理器 --&gt;</span>  
+</span></span><span style="display:flex;"><span>           <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;transactionManager&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;transactionManager&#34;</span> <span style="color:#f92672">/&gt;</span>     
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;target&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;userDaoTarget&#34;</span> <span style="color:#f92672">/&gt;</span>  
+</span></span><span style="display:flex;"><span>         <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;proxyInterfaces&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;com.bluesky.spring.dao.GeneratorDao&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!-- 配置事务属性 --&gt;</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;transactionAttributes&#34;</span><span style="color:#f92672">&gt;</span>  
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;props&gt;</span>  
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;prop</span> <span style="color:#a6e22e">key=</span><span style="color:#e6db74">&#34;*&#34;</span><span style="color:#f92672">&gt;</span>PROPAGATION_REQUIRED<span style="color:#f92672">&lt;/prop&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;/props&gt;</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/property&gt;</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/bean&gt;</span>  
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/beans&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="数据源datasource"><strong>数据源（dataSource）</strong></h2>
+<p>dataSource 元素使用标准的 JDBC 数据源接口来配置 JDBC 连接对象的资源。</p>
+<ul>
+<li>大多数 MyBatis 应用程序会按示例中的例子来配置数据源。虽然数据源配置是可选的，但如果要启用延迟加载特性，就必须配置数据源。</li>
+</ul>
+<p>有三种内建的数据源类型（也就是 type=&quot;[UNPOOLED|POOLED|JNDI]&quot;）：</p>
+<p><strong>UNPOOLED</strong>– 这个数据源的实现会每次请求时打开和关闭连接。虽然有点慢，但对那些数据库连接可用性要求不高的简单应用程序来说，是一个很好的选择。 性能表现则依赖于使用的数据库，对某些数据库来说，使用连接池并不重要，这个配置就很适合这种情形。UNPOOLED 类型的数据源仅仅需要配置以下 5 种属性：</p>
+<ul>
+<li><code>driver</code> – 这是 JDBC 驱动的 Java 类全限定名（并不是 JDBC 驱动中可能包含的数据源类）。</li>
+<li><code>url</code> – 这是数据库的 JDBC URL 地址。</li>
+<li><code>username</code> – 登录数据库的用户名。</li>
+<li><code>password</code> – 登录数据库的密码。</li>
+<li><code>defaultTransactionIsolationLevel</code> – 默认的连接事务隔离级别。</li>
+<li><code>defaultNetworkTimeout</code> – 等待数据库操作完成的默认网络超时时间（单位：毫秒）。查看 <code>java.sql.Connection#setNetworkTimeout()</code> 的 API 文档以获取更多信息。</li>
+</ul>
+<p>作为可选项，你也可以传递属性给数据库驱动。只需在属性名加上“driver.”前缀即可，例如：</p>
+<ul>
+<li><code>driver.encoding=UTF8</code></li>
+</ul>
+<p>这将通过 DriverManager.getConnection(url, driverProperties) 方法传递值为 <code>UTF8</code> 的 <code>encoding</code> 属性给数据库驱动。</p>
+<p><strong>POOLED</strong>– 这种数据源的实现利用“池”的概念将 JDBC 连接对象组织起来，避免了创建新的连接实例时所必需的初始化和认证时间。 这种处理方式很流行，能使并发 Web 应用快速响应请求。</p>
+<p>除了上述提到 UNPOOLED 下的属性外，还有更多属性用来配置 POOLED 的数据源：</p>
+<ul>
+<li><code>poolMaximumActiveConnections</code> – 在任意时间可存在的活动（正在使用）连接数量，默认值：10</li>
+<li><code>poolMaximumIdleConnections</code> – 任意时间可能存在的空闲连接数。</li>
+<li><code>poolMaximumCheckoutTime</code> – 在被强制返回之前，池中连接被检出（checked out）时间，默认值：20000 毫秒（即 20 秒）</li>
+<li><code>poolTimeToWait</code> – 这是一个底层设置，如果获取连接花费了相当长的时间，连接池会打印状态日志并重新尝试获取一个连接（避免在误配置的情况下一直失败且不打印日志），默认值：20000 毫秒（即 20 秒）。</li>
+<li><code>poolMaximumLocalBadConnectionTolerance</code> – 这是一个关于坏连接容忍度的底层设置， 作用于每一个尝试从缓存池获取连接的线程。 如果这个线程获取到的是一个坏的连接，那么这个数据源允许这个线程尝试重新获取一个新的连接，但是这个重新尝试的次数不应该超过 <code>poolMaximumIdleConnections</code> 与 <code>poolMaximumLocalBadConnectionTolerance</code> 之和。 默认值：3（新增于 3.4.5）</li>
+<li><code>poolPingQuery</code> – 发送到数据库的侦测查询，用来检验连接是否正常工作并准备接受请求。默认是“NO PING QUERY SET”，这会导致多数数据库驱动出错时返回恰当的错误消息。</li>
+<li><code>poolPingEnabled</code> – 是否启用侦测查询。若开启，需要设置 <code>poolPingQuery</code> 属性为一个可执行的 SQL 语句（最好是一个速度非常快的 SQL 语句），默认值：false。</li>
+<li><code>poolPingConnectionsNotUsedFor</code> – 配置 poolPingQuery 的频率。可以被设置为和数据库连接超时时间一样，来避免不必要的侦测，默认值：0（即所有连接每一时刻都被侦测 — 当然仅当 poolPingEnabled 为 true 时适用）。</li>
+</ul>
+<p><strong>JNDI</strong> – 这个数据源实现是为了能在如 EJB 或应用服务器这类容器中使用，容器可以集中或在外部配置数据源，然后放置一个 JNDI 上下文的数据源引用。这种数据源配置只需要两个属性：</p>
+<ul>
+<li><code>initial_context</code> – 这个属性用来在 InitialContext 中寻找上下文（即，initialContext.lookup(initial_context)）。这是个可选属性，如果忽略，那么将会直接从 InitialContext 中寻找 data_source 属性。</li>
+<li><code>data_source</code> – 这是引用数据源实例位置的上下文路径。提供了 initial_context 配置时会在其返回的上下文中进行查找，没有提供时则直接在 InitialContext 中查找。</li>
+</ul>
+<p>和其他数据源配置类似，可以通过添加前缀“env.”直接把属性传递给 InitialContext。比如：</p>
+<ul>
+<li><code>env.encoding=UTF8</code></li>
+</ul>
+<p>这就会在 InitialContext 实例化时往它的构造方法传递值为 <code>UTF8</code> 的 <code>encoding</code> 属性。</p>
+<h1 id="映射器mappers">映射器（mappers）</h1>
+<p>找寻映射器的方法</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- 使用相对于类路径的资源引用 --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;mappers&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">resource=</span><span style="color:#e6db74">&#34;org/mybatis/builder/AuthorMapper.xml&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">resource=</span><span style="color:#e6db74">&#34;org/mybatis/builder/BlogMapper.xml&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">resource=</span><span style="color:#e6db74">&#34;org/mybatis/builder/PostMapper.xml&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/mappers&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- 使用完全限定资源定位符（URL） --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;mappers&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">url=</span><span style="color:#e6db74">&#34;file:///var/mappers/AuthorMapper.xml&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">url=</span><span style="color:#e6db74">&#34;file:///var/mappers/BlogMapper.xml&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">url=</span><span style="color:#e6db74">&#34;file:///var/mappers/PostMapper.xml&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/mappers&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- 使用映射器接口实现类的完全限定类名 --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;mappers&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.mybatis.builder.AuthorMapper&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.mybatis.builder.BlogMapper&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.mybatis.builder.PostMapper&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/mappers&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- 将包内的映射器接口实现全部注册为映射器 --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;mappers&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;package</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;org.mybatis.builder&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/mappers&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mybatis/mybatis%E4%BD%9C%E7%94%A8%E5%9F%9F/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mybatis作用域</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mybatis/mybatis%E4%BD%BF%E7%94%A8/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mybatis使用</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mybatis/mybatis%E6%89%A7%E8%A1%8C/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mybatis执行</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%AD%BB%E9%94%81/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql死锁</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql技巧</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

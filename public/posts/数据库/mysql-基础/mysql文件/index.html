@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='文件类型 参数文件 日志文件 Socket 文件 pid 文件 Mysql 表结构文件 存储引擎文件 参数文件 mysql 实例在启动的时候，会查找一些配置参数文件。用来寻找数据库的各种文件所在位置以及指定某些初始化参数。如果没有找到就会找编译Mysql 时指定的默认值和源代码中指定参数的默认值。如果没有找到mysql 架构，还是会启动失败
+参数 参数就是文本类型的，key/value 形式。
+1 2 3 4 5 # 查看数据库中所有参数 show variables # like 指定具体的参数key show variables like &amp;#39;&amp;#39; 参数类型
+动态 Global:修改了Global 当前session 内不会生效，新开的session 会生效，重启mysql 之后，就会恢复到配置文件的参数 Session： 修改了Session ，当前Session 立即生效，新Session 不会生效 静态【不可修改】 日志文件 错误日志 二进制日志 慢查询日志 查询日志 错误日志 错误日志记录mysql 启动、运行、关闭过程。
+1 2 show variables like &amp;#39;log_error&amp;#39;; /usr/local/mysql/data/mysqld.local.err 慢查询日志 Mysql 中启动时设置一个阀值，将运行时间大于这个一阀值 的sql 记录到慢查询日志中
+1 2 3 4 5 # 设置阀值 单位毫秒 show variables like &amp;#39;long_query_time&amp;#39;; # 运行sql 是否使用索引 默认关闭 show variables like &amp;#39;log_queries_not_using_indexes&amp;#39;; mysql 5.'>
+<title>Mysql文件</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='Mysql文件'>
+<meta property='og:description' content='文件类型 参数文件 日志文件 Socket 文件 pid 文件 Mysql 表结构文件 存储引擎文件 参数文件 mysql 实例在启动的时候，会查找一些配置参数文件。用来寻找数据库的各种文件所在位置以及指定某些初始化参数。如果没有找到就会找编译Mysql 时指定的默认值和源代码中指定参数的默认值。如果没有找到mysql 架构，还是会启动失败
+参数 参数就是文本类型的，key/value 形式。
+1 2 3 4 5 # 查看数据库中所有参数 show variables # like 指定具体的参数key show variables like &amp;#39;&amp;#39; 参数类型
+动态 Global:修改了Global 当前session 内不会生效，新开的session 会生效，重启mysql 之后，就会恢复到配置文件的参数 Session： 修改了Session ，当前Session 立即生效，新Session 不会生效 静态【不可修改】 日志文件 错误日志 二进制日志 慢查询日志 查询日志 错误日志 错误日志记录mysql 启动、运行、关闭过程。
+1 2 show variables like &amp;#39;log_error&amp;#39;; /usr/local/mysql/data/mysqld.local.err 慢查询日志 Mysql 中启动时设置一个阀值，将运行时间大于这个一阀值 的sql 记录到慢查询日志中
+1 2 3 4 5 # 设置阀值 单位毫秒 show variables like &amp;#39;long_query_time&amp;#39;; # 运行sql 是否使用索引 默认关闭 show variables like &amp;#39;log_queries_not_using_indexes&amp;#39;; mysql 5.'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-12-04T23:56:22&#43;08:00'/><meta property='article:modified_time' content='2022-12-04T23:56:22&#43;08:00'/>
+<meta name="twitter:title" content="Mysql文件">
+<meta name="twitter:description" content="文件类型 参数文件 日志文件 Socket 文件 pid 文件 Mysql 表结构文件 存储引擎文件 参数文件 mysql 实例在启动的时候，会查找一些配置参数文件。用来寻找数据库的各种文件所在位置以及指定某些初始化参数。如果没有找到就会找编译Mysql 时指定的默认值和源代码中指定参数的默认值。如果没有找到mysql 架构，还是会启动失败
+参数 参数就是文本类型的，key/value 形式。
+1 2 3 4 5 # 查看数据库中所有参数 show variables # like 指定具体的参数key show variables like &amp;#39;&amp;#39; 参数类型
+动态 Global:修改了Global 当前session 内不会生效，新开的session 会生效，重启mysql 之后，就会恢复到配置文件的参数 Session： 修改了Session ，当前Session 立即生效，新Session 不会生效 静态【不可修改】 日志文件 错误日志 二进制日志 慢查询日志 查询日志 错误日志 错误日志记录mysql 启动、运行、关闭过程。
+1 2 show variables like &amp;#39;log_error&amp;#39;; /usr/local/mysql/data/mysqld.local.err 慢查询日志 Mysql 中启动时设置一个阀值，将运行时间大于这个一阀值 的sql 记录到慢查询日志中
+1 2 3 4 5 # 设置阀值 单位毫秒 show variables like &amp;#39;long_query_time&amp;#39;; # 运行sql 是否使用索引 默认关闭 show variables like &amp;#39;log_queries_not_using_indexes&amp;#39;; mysql 5.">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#文件类型">文件类型</a></li>
+    <li><a href="#参数文件">参数文件</a>
+      <ol>
+        <li><a href="#参数">参数</a></li>
+      </ol>
+    </li>
+    <li><a href="#日志文件">日志文件</a>
+      <ol>
+        <li><a href="#错误日志">错误日志</a></li>
+        <li><a href="#慢查询日志">慢查询日志</a></li>
+        <li><a href="#查询日志">查询日志</a></li>
+        <li><a href="#二进制文件">二进制文件</a></li>
+        <li><a href="#pid-文件">pid 文件</a></li>
+        <li><a href="#innodb-存储引擎文件">innodb 存储引擎文件</a>
+          <ol>
+            <li><a href="#表空间文件">表空间文件</a></li>
+            <li><a href="#重做日志文件">重做日志文件</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" >
+                数据库
+            </a>
+        
+            <a href="/categories/mysql/" >
+                mysql
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/">Mysql文件</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 04, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 3 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="文件类型">文件类型</h1>
+<ul>
+<li>参数文件</li>
+<li>日志文件</li>
+<li>Socket 文件</li>
+<li>pid 文件</li>
+<li>Mysql 表结构文件</li>
+<li>存储引擎文件</li>
+</ul>
+<h1 id="参数文件">参数文件</h1>
+<p>mysql 实例在启动的时候，会查找一些配置参数文件。用来寻找数据库的各种文件所在位置以及指定某些初始化参数。如果没有找到就会找编译Mysql 时指定的默认值和源代码中指定参数的默认值。如果没有找到mysql 架构，还是会启动失败</p>
+<h2 id="参数">参数</h2>
+<p>参数就是文本类型的，key/value 形式。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看数据库中所有参数</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#66d9ef">like</span> <span style="color:#960050;background-color:#1e0010">指定具体的参数</span><span style="color:#66d9ef">key</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>参数类型</p>
+<ul>
+<li>动态
+<ul>
+<li>Global:修改了Global 当前session 内不会生效，新开的session 会生效，重启mysql 之后，就会恢复到配置文件的参数</li>
+<li>Session： 修改了Session ，当前Session 立即生效，新Session 不会生效</li>
+</ul>
+</li>
+<li>静态【不可修改】</li>
+</ul>
+<h1 id="日志文件">日志文件</h1>
+<ul>
+<li>错误日志</li>
+<li>二进制日志</li>
+<li>慢查询日志</li>
+<li>查询日志</li>
+</ul>
+<h2 id="错误日志">错误日志</h2>
+<p>错误日志记录mysql 启动、运行、关闭过程。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;log_error&#39;</span>;
+</span></span><span style="display:flex;"><span> <span style="color:#f92672">/</span>usr<span style="color:#f92672">/</span><span style="color:#66d9ef">local</span><span style="color:#f92672">/</span>mysql<span style="color:#f92672">/</span><span style="color:#66d9ef">data</span><span style="color:#f92672">/</span>mysqld.<span style="color:#66d9ef">local</span>.err
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="慢查询日志">慢查询日志</h2>
+<p>Mysql 中启动时设置一个阀值，将运行时间大于这个一阀值 的sql 记录到慢查询日志中</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">设置阀值</span> <span style="color:#960050;background-color:#1e0010">单位毫秒</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;long_query_time&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">运行</span><span style="color:#66d9ef">sql</span> <span style="color:#960050;background-color:#1e0010">是否使用索引</span> <span style="color:#960050;background-color:#1e0010">默认关闭</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;log_queries_not_using_indexes&#39;</span>;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>mysql 5.1 后，慢查询记录到表中 slow_log</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">展示建表语句</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> <span style="color:#66d9ef">create</span> <span style="color:#66d9ef">table</span> mysql.slow_log;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看慢查询输出格式</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;log_output&#39;</span>; 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">set</span> <span style="color:#66d9ef">global</span> slow_query_log<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;ON&#39;</span>;<span style="color:#75715e">-- 启用慢查询 ,加上global，不然会报错的;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看慢</span><span style="color:#66d9ef">sql</span> <span style="color:#960050;background-color:#1e0010">表</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> mysql.slow_log
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Mysqldumpslow</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>mysqldumpslow [ OPTS... ] [ LOGS... ]  -- 后跟参数以及log文件的绝对地址;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>例：
+</span></span><span style="display:flex;"><span>mysqldumpslow -s c -t 10 /var/run/mysqld/mysqld-slow.log # 取出使用最多的10条慢查询
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mysqldumpslow -s t -t 3 /var/run/mysqld/mysqld-slow.log # 取出查询时间最慢的3条慢查询
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mysqldumpslow -s t -t 10 -g “left join” /database/mysql/slow-log # 得到按照时间排序的前10条里面含有左连接的查询语句
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mysqldumpslow -s r -t 10 -g &#39;left join&#39; /var/run/mysqld/mysqld-slow.log # 按照扫描行数最多的
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>slow_log<span style="color:#f92672">`</span> (
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>start_time<span style="color:#f92672">`</span> <span style="color:#66d9ef">timestamp</span>(<span style="color:#ae81ff">6</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span> <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">CURRENT_TIMESTAMP</span>(<span style="color:#ae81ff">6</span>) <span style="color:#66d9ef">ON</span> <span style="color:#66d9ef">UPDATE</span> <span style="color:#66d9ef">CURRENT_TIMESTAMP</span>(<span style="color:#ae81ff">6</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>user_host<span style="color:#f92672">`</span> mediumtext <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>query_time<span style="color:#f92672">`</span> time(<span style="color:#ae81ff">6</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>lock_time<span style="color:#f92672">`</span> time(<span style="color:#ae81ff">6</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>rows_sent<span style="color:#f92672">`</span> int <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>rows_examined<span style="color:#f92672">`</span> int <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>db<span style="color:#f92672">`</span> varchar(<span style="color:#ae81ff">512</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>last_insert_id<span style="color:#f92672">`</span> int <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>insert_id<span style="color:#f92672">`</span> int <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>server_id<span style="color:#f92672">`</span> int unsigned <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>sql_text<span style="color:#f92672">`</span> mediumblob <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">`</span>thread_id<span style="color:#f92672">`</span> bigint unsigned <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>
+</span></span><span style="display:flex;"><span>) ENGINE<span style="color:#f92672">=</span>CSV <span style="color:#66d9ef">DEFAULT</span> CHARSET<span style="color:#f92672">=</span>utf8mb3 <span style="color:#66d9ef">COMMENT</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Slow log&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>通过long_query_io 将超过指定逻辑IO 次数的sql 记录到slow log 中，默认是100，</p>
+<p>slow_query_type:</p>
+<ul>
+<li>0: 不将s q l 记录到slow  log 中</li>
+<li>1: 根据运行时间将s q l 记录到slow  log 中</li>
+<li>2: 根据逻辑i o 次数将s ql 记录到slow  log 中</li>
+<li>3: 根据运行时间、逻辑i o 次数将s ql 记录到slow  log 中</li>
+</ul>
+<h2 id="查询日志">查询日志</h2>
+<p><strong>查询日志记录了所有对mysql 数据库的请求</strong>，无论这些请求是否正确</p>
+<p>mysql 5.1 之后将记录放在general_log 表中</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> mysql.general_log;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="二进制文件">二进制文件</h2>
+<p><strong>二进制文件记录了对mysql 数据库执行的更新操作，但不包括 select 和show  操作</strong>，若操作没有对数据库产生影响，也有可能会写入二进制文件</p>
+<p><strong>用户想要记录 select 和show  操作了，可以使用查询日志</strong></p>
+<p>二进制文件名称一般为 主机名.二进制序列号：在配置文件中指明 binlog 为文件名，binlog.index为二进制索引文件，用来存储过往生成的二进制日志序列号</p>
+<p>二进制文件作用：</p>
+<ul>
+<li>恢复</li>
+<li>复制：通过复制保证两个数据库同步</li>
+<li>审计：根据二进制文件内容来判断是否有对数据库进行注入攻击</li>
+</ul>
+<p>参数：</p>
+<ul>
+<li>Max_binglog_size: 单个二进制文件最大值</li>
+<li>bing_cache_size : 有事务的时候，操作会记录到缓存中，提交之后将缓存中的内容写入到二进制文件，【基于会话的】，当数据库事务内容大于bing_cache_size，会写到临时文件中，</li>
+<li>Sync_binlog = [N ] 表示每写缓存多少次就同步到磁盘。默认是0</li>
+<li>Bingo-do-db,binlog-ignore-db 表现需要写入或者忽略的那些库的日志</li>
+<li>binlog_format:记录二进制的格式
+<ul>
+<li>STATEMENT: 逻辑s ql 语句</li>
+<li>ROW: 记录表的行更改情况</li>
+<li>MIXED： 两者结合</li>
+</ul>
+</li>
+</ul>
+<p>binlog_format=ROW可以为数据库恢复和复制更可靠，但会增大文件大小</p>
+<p>查看二进制文件：</p>
+<p>mysqlbinlog xx0001</p>
+<h2 id="pid-文件">pid 文件</h2>
+<p>mysql 启动时会将自己的进程ID写入文件中</p>
+<h2 id="innodb-存储引擎文件">innodb 存储引擎文件</h2>
+<h3 id="表空间文件">表空间文件</h3>
+<p>innodb将数据存储按照表空间的形式存放。默认有一个10MB 的共享表空间，名称为ibdata1 的文件。</p>
+<p>可以为每张表设置独立的表空间，命名为: 表名.ibd</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看每张表是否开启独立表空间</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;innodb_file_per_table&#39;</span>;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在每张表的表空间中记录了：存储的数据，索引，插入缓冲BITMAP</p>
+<h3 id="重做日志文件">重做日志文件</h3>
+<p>在innodb 存储引擎目标中有两个文件ib_logfile0，ib_logfile1。是重做日志文件，用于记录每个事务的提交。</p>
+<p>每组重做日志文件以循环写入的方式运行，先写第一个文件，写满之后就会写第二个文件，第二个文件写满之后就会重复写第一个文件</p>
+<ul>
+<li>Innodb_log_file_size: 指定重做日志文件大小</li>
+<li>Innodb_log_files_in_group: 指定每个组重做日志文件数量</li>
+<li></li>
+</ul>
+<p>对比重复日志文件与二进制文件</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th>二进制文件</th>
+<th>重做日志文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>写入时机</td>
+<td>每次提交时写</td>
+<td>在事务进行中写入</td>
+</tr>
+<tr>
+<td>内容</td>
+<td>记录innodb 、MyisAM、Heap引擎的操作</td>
+<td>只记录innodb 引擎的相关操作</td>
+</tr>
+<tr>
+<td>格式</td>
+<td>改日志的逻辑操作</td>
+<td>每个页的更新的物理操作</td>
+</tr>
+</tbody>
+</table></div>
+<p>重做日志文件条目结构</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>redo_log_type</th>
+<th>space</th>
+<th>page_no</th>
+<th>redo_log_body</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>重做日志类型</td>
+<td>表空间id(压缩方式)</td>
+<td>页的偏移量</td>
+<td>重做日志数据部分，需要根据特殊函数修复</td>
+</tr>
+</tbody>
+</table></div>
+<p>写入重做日志的时机：</p>
+<ul>
+<li>
+<p>master thread 每秒的操作：不论事务是否提交</p>
+</li>
+<li>
+<p>Innodb_flush_log_at_trx_commit参数：</p>
+<ul>
+<li>
+<p>0： 事务提交时不写入，等待主线程操作</p>
+</li>
+<li>
+<p>1:  提交时同步刷新到磁盘中</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>查看binlog日志</p>
+<p>1、先进入到data 目录</p>
+<p>2、使用命令查看文件</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span>mysqlbinlog <span style="color:#f92672">--</span>no<span style="color:#f92672">-</span>defaults <span style="color:#f92672">--</span>base64<span style="color:#f92672">-</span>output<span style="color:#f92672">=</span>decode<span style="color:#f92672">-</span>rows <span style="color:#f92672">-</span>v   binlog.<span style="color:#ae81ff">000024</span><span style="color:#f92672">|</span>more
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%AD%BB%E9%94%81/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql死锁</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql技巧</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql事务</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E8%A1%A8/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql表</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E7%B4%A2%E5%BC%95/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql索引</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='事务 隔离级别 事务实现 1、锁 共享锁（share lock） 共享锁也叫读锁，可以允许多个事务读取，但不支持其它事务进行更新操作
+允许持有锁的事务读取一行
+在sql 中手动加锁: select * from table where 1 lock in share mode
+1 2 3 4 5 6 begin; SELECT * FROM student WHERE id =1 lock in share MODE; begin; SELECT * FROM student WHERE id =2 lock in share MODE; # 执行ok ,多个事务可以共享读锁 排他锁(exclusive lock) 写锁，只要一个事务获取到这一行的排他锁之后，其他事务就不能获取这一行的共享锁和排他锁
+允许持有排他锁的事务更新或者删除一行
+新增、修改、删除都会默认加上排他锁
+在sql 中手动加锁： select * from table where 1 for update
+共享锁和排他锁都是行锁
+1 2 3 4 5 BEGIN; UPDATE student SET student_name=&amp;#39;xxxx&amp;#39; WHERE id=2; COMMIT SELECT * FROM student WHERE id =2 for UPDATE; 会针对每一行进行上锁'>
+<title>Mysql事务</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='Mysql事务'>
+<meta property='og:description' content='事务 隔离级别 事务实现 1、锁 共享锁（share lock） 共享锁也叫读锁，可以允许多个事务读取，但不支持其它事务进行更新操作
+允许持有锁的事务读取一行
+在sql 中手动加锁: select * from table where 1 lock in share mode
+1 2 3 4 5 6 begin; SELECT * FROM student WHERE id =1 lock in share MODE; begin; SELECT * FROM student WHERE id =2 lock in share MODE; # 执行ok ,多个事务可以共享读锁 排他锁(exclusive lock) 写锁，只要一个事务获取到这一行的排他锁之后，其他事务就不能获取这一行的共享锁和排他锁
+允许持有排他锁的事务更新或者删除一行
+新增、修改、删除都会默认加上排他锁
+在sql 中手动加锁： select * from table where 1 for update
+共享锁和排他锁都是行锁
+1 2 3 4 5 BEGIN; UPDATE student SET student_name=&amp;#39;xxxx&amp;#39; WHERE id=2; COMMIT SELECT * FROM student WHERE id =2 for UPDATE; 会针对每一行进行上锁'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-12-04T23:56:46&#43;08:00'/><meta property='article:modified_time' content='2022-12-04T23:56:46&#43;08:00'/>
+<meta name="twitter:title" content="Mysql事务">
+<meta name="twitter:description" content="事务 隔离级别 事务实现 1、锁 共享锁（share lock） 共享锁也叫读锁，可以允许多个事务读取，但不支持其它事务进行更新操作
+允许持有锁的事务读取一行
+在sql 中手动加锁: select * from table where 1 lock in share mode
+1 2 3 4 5 6 begin; SELECT * FROM student WHERE id =1 lock in share MODE; begin; SELECT * FROM student WHERE id =2 lock in share MODE; # 执行ok ,多个事务可以共享读锁 排他锁(exclusive lock) 写锁，只要一个事务获取到这一行的排他锁之后，其他事务就不能获取这一行的共享锁和排他锁
+允许持有排他锁的事务更新或者删除一行
+新增、修改、删除都会默认加上排他锁
+在sql 中手动加锁： select * from table where 1 for update
+共享锁和排他锁都是行锁
+1 2 3 4 5 BEGIN; UPDATE student SET student_name=&amp;#39;xxxx&amp;#39; WHERE id=2; COMMIT SELECT * FROM student WHERE id =2 for UPDATE; 会针对每一行进行上锁">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#事务">事务</a></li>
+    <li><a href="#隔离级别">隔离级别</a></li>
+    <li><a href="#事务实现">事务实现</a>
+      <ol>
+        <li><a href="#1锁">1、锁</a></li>
+        <li><a href="#共享锁share-lock">共享锁（share lock）</a></li>
+        <li><a href="#排他锁exclusive-lock">排他锁(exclusive lock)</a></li>
+        <li><a href="#意向锁">意向锁</a></li>
+        <li><a href="#记录锁record-lock">记录锁(Record lock)</a></li>
+        <li><a href="#间隙锁gap-lock">间隙锁(gap lock)</a></li>
+        <li><a href="#临键锁next-key--lock">临键锁(Next-key  lock)</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" >
+                数据库
+            </a>
+        
+            <a href="/categories/mysql/" >
+                mysql
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/">Mysql事务</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 04, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 1 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="事务">事务</h1>
+<h1 id="隔离级别">隔离级别</h1>
+<h1 id="事务实现">事务实现</h1>
+<h2 id="1锁">1、锁</h2>
+<h2 id="共享锁share-lock">共享锁（share lock）</h2>
+<p>共享锁也叫读锁，可以允许多个事务读取，但不支持其它事务进行更新操作</p>
+<p>允许持有锁的事务读取一行</p>
+<p><strong>在sql 中手动加锁: select * from table where 1 lock in share mode</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">begin</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> student <span style="color:#66d9ef">WHERE</span> id <span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">lock</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">share</span>  <span style="color:#66d9ef">MODE</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">begin</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> student <span style="color:#66d9ef">WHERE</span> id <span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> <span style="color:#66d9ef">lock</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">share</span> <span style="color:#66d9ef">MODE</span>; <span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">执行</span>ok ,<span style="color:#960050;background-color:#1e0010">多个事务可以共享读锁</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="排他锁exclusive-lock">排他锁(exclusive lock)</h2>
+<p>写锁，只要一个事务获取到这一行的排他锁之后，其他事务就不能获取这一行的共享锁和排他锁</p>
+<p>允许持有排他锁的事务更新或者删除一行</p>
+<p><strong>新增、修改、删除都会默认加上排他锁</strong></p>
+<p><strong>在sql 中手动加锁： select * from table where 1 for update</strong></p>
+<p><strong>共享锁和排他锁都是行锁</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">BEGIN</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">UPDATE</span> student <span style="color:#66d9ef">SET</span> student_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;xxxx&#39;</span> <span style="color:#66d9ef">WHERE</span> id<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">COMMIT</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> student <span style="color:#66d9ef">WHERE</span> id <span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">UPDATE</span>;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>会针对每一行进行上锁</strong></p>
+<p>事务一持有S 锁【针对同一行】：</p>
+<ul>
+<li>事务二可以获取s锁，不可以获取X 锁</li>
+</ul>
+<p>事务一持有X 锁【针对同一行】：</p>
+<ul>
+<li>事务二不可以获取s锁，不可以获取X 锁</li>
+</ul>
+<p><strong>当innodb 搜索或扫描一个表索引时，它会在遇到的索引记录上设置共享或排他锁。因此，行级锁实际上是索引记录锁。</strong></p>
+<p>如果表没有创建索引的话，innodb会创建一个默认索引。</p>
+<h2 id="意向锁">意向锁</h2>
+<p>意向锁是表锁，是为了快速判断表是否可以加锁，否则的话需要逐行去判断行上是否有事务。</p>
+<p><strong>意向锁指示事务稍后需要表中的一行使用哪种类型的锁(共享或排他)。</strong></p>
+<p>给行加上 共享锁或者排他锁之后，表会自动加上 共享意向锁或者排他意向锁：为了提高表锁效率</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">给表加锁</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">lock</span> tables <span style="color:#66d9ef">table_name</span> <span style="color:#66d9ef">write</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">lock</span> tables <span style="color:#66d9ef">table_name</span> <span style="color:#66d9ef">read</span>;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>intention shared lock (IS) (<code>IS</code>) ：指示事务稍后会对表中的每一行加上S Lock</p>
+<p>intention exclusive lock (IX) (<code>IS</code>) ：指示事务稍后会对表中的每一行加上X Lock</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">为表加上</span> <span style="color:#66d9ef">IS</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">select</span> ... <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">share</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">为表加上</span> IX
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">select</span> ... <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">update</span>;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>事务在获取表中某一行的共享锁之前，必须首先获取表上的IS锁或更强的锁。</strong></p>
+<p><strong>在事务可以在表中的行中获取独占锁之前，必须首先在表格上获取IX锁。</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th>X</th>
+<th>S</th>
+<th>IX</th>
+<th>IS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>X</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+</tr>
+<tr>
+<td>S</td>
+<td>N</td>
+<td>Y</td>
+<td>N(意味着后面会加入X锁)</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>IX</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>IS</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="记录锁record-lock">记录锁(Record lock)</h2>
+<p>每一条记录，使用等值查询的时候，每一条匹配到的就是上锁。粒度最小.</p>
+<p>可以防止对同一行进行 删除、更新。</p>
+<p><strong>记录锁总是锁定索引记录，即使表没有定义索引。对于这种情况，InnoDB会创建一个隐藏的聚集索引，并使用这个索引进行记录锁定。</strong></p>
+<h2 id="间隙锁gap-lock">间隙锁(gap lock)</h2>
+<p>不同索引之间的间隙</p>
+<p>查询的记录不存在，情况是查询语句中有范围，</p>
+<p>间隙锁主要是阻塞 insert,相同的间隙锁之间不冲突</p>
+<p><strong>gap lock 可以有效避免幻读</strong></p>
+<p><strong>间隙锁是索引记录之间的间隙上的锁，或者第一个索引记录之前或最后一个索引记录之后的间隙上的锁。</strong>【开区间】</p>
+<p>间隙锁是性能和并发性之间权衡的一部分，</p>
+<p><strong>如果查询条件使用唯一索引的话，gap lock 会退化成 Record lock</strong></p>
+<p><strong>如果id没有被索引或具有非唯一索引，则该语句将锁定前面的间隙。</strong></p>
+<p>冲突锁可以由不同的事务在间隙上持有。例如，事务A可以持有一个间隙上的共享间隙锁(间隙s锁)，而事务B持有同一个间隙上的排他间隙锁(间隙x锁)。</p>
+<p><strong>相同的间隙可以在不同的事务中持有不同的间隙锁（S或者X 都可以）</strong></p>
+<h2 id="临键锁next-key--lock">临键锁(Next-key  lock)</h2>
+<p>左开右闭区见。<strong>临键锁=记录锁+间隙锁</strong></p>
+<p>外键检查约束以及重复键检查会使用间隙锁封锁区间</p>
+<p><strong>next-key锁是索引记录锁加上索引记录之前的间隙锁。</strong></p>
+<p>如果一个会话对索引中的记录R有一个共享或排他锁，那么另一个会话不能在紧挨着索引顺序的R<strong>之前</strong>的间隙插入一个新的索引记录。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%AD%BB%E9%94%81/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql死锁</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql技巧</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql文件</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E8%A1%A8/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql表</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E7%B4%A2%E5%BC%95/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql索引</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='在Mysql 5.5 之后是默认存储引擎
+是第一个支持ACID 事务的存储引擎
+特点 行锁设置、MVCC 、支持外键、提供一致性非锁定读
+结构 内存池 共多个线程共享数据 缓存磁盘中的文件，，方便快速读取 重做日志缓冲 后台线程 刷新缓存池中的数据，保证数据是最近的 将缓存池中的数据存进磁盘 Master Thread 1 2 功能：将缓存池中的数据异步刷新到磁盘中 负责：脏页的刷新，合并插入缓存，UNDO 页的回收 IO Thread InnoDB 使用大量的 AIO 来处理写IO请求
+1 包括： write、read 、insert buffer、log IO 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 # 查看innodb 版本 show VARIABLES like &amp;#39;innodb_version&amp;#39;; # 查看innodb 线程 SHOW VARIABLES like &amp;#39;%_threads&amp;#39;; innodb_ddl_threads	4 innodb_log_writer_threads	ON innodb_parallel_read_threads	4 innodb_purge_threads	4 innodb_read_io_threads	4 innodb_write_io_threads	4 max_delayed_threads	20 max_insert_delayed_threads	20 myisam_repair_threads	1 mysqlx_min_worker_threads	2 # 查看innodb 情况 show ENGINE INnodb STATUS; Purge Thread 1 mysql 事务提交之后，所使用的undo log 可能就不需要了，Purge thread 会回收已经分配的undo log Page Cleaner Thread 1 处理脏页刷新操作。 缓存池 缓存池是介于磁盘和cpu 的缓冲区域，能够有效的提交访问速度'>
+<title>Mysql内存</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E5%86%85%E5%AD%98/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='Mysql内存'>
+<meta property='og:description' content='在Mysql 5.5 之后是默认存储引擎
+是第一个支持ACID 事务的存储引擎
+特点 行锁设置、MVCC 、支持外键、提供一致性非锁定读
+结构 内存池 共多个线程共享数据 缓存磁盘中的文件，，方便快速读取 重做日志缓冲 后台线程 刷新缓存池中的数据，保证数据是最近的 将缓存池中的数据存进磁盘 Master Thread 1 2 功能：将缓存池中的数据异步刷新到磁盘中 负责：脏页的刷新，合并插入缓存，UNDO 页的回收 IO Thread InnoDB 使用大量的 AIO 来处理写IO请求
+1 包括： write、read 、insert buffer、log IO 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 # 查看innodb 版本 show VARIABLES like &amp;#39;innodb_version&amp;#39;; # 查看innodb 线程 SHOW VARIABLES like &amp;#39;%_threads&amp;#39;; innodb_ddl_threads	4 innodb_log_writer_threads	ON innodb_parallel_read_threads	4 innodb_purge_threads	4 innodb_read_io_threads	4 innodb_write_io_threads	4 max_delayed_threads	20 max_insert_delayed_threads	20 myisam_repair_threads	1 mysqlx_min_worker_threads	2 # 查看innodb 情况 show ENGINE INnodb STATUS; Purge Thread 1 mysql 事务提交之后，所使用的undo log 可能就不需要了，Purge thread 会回收已经分配的undo log Page Cleaner Thread 1 处理脏页刷新操作。 缓存池 缓存池是介于磁盘和cpu 的缓冲区域，能够有效的提交访问速度'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E5%86%85%E5%AD%98/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-12-04T23:55:18&#43;08:00'/><meta property='article:modified_time' content='2022-12-04T23:55:18&#43;08:00'/>
+<meta name="twitter:title" content="Mysql内存">
+<meta name="twitter:description" content="在Mysql 5.5 之后是默认存储引擎
+是第一个支持ACID 事务的存储引擎
+特点 行锁设置、MVCC 、支持外键、提供一致性非锁定读
+结构 内存池 共多个线程共享数据 缓存磁盘中的文件，，方便快速读取 重做日志缓冲 后台线程 刷新缓存池中的数据，保证数据是最近的 将缓存池中的数据存进磁盘 Master Thread 1 2 功能：将缓存池中的数据异步刷新到磁盘中 负责：脏页的刷新，合并插入缓存，UNDO 页的回收 IO Thread InnoDB 使用大量的 AIO 来处理写IO请求
+1 包括： write、read 、insert buffer、log IO 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 # 查看innodb 版本 show VARIABLES like &amp;#39;innodb_version&amp;#39;; # 查看innodb 线程 SHOW VARIABLES like &amp;#39;%_threads&amp;#39;; innodb_ddl_threads	4 innodb_log_writer_threads	ON innodb_parallel_read_threads	4 innodb_purge_threads	4 innodb_read_io_threads	4 innodb_write_io_threads	4 max_delayed_threads	20 max_insert_delayed_threads	20 myisam_repair_threads	1 mysqlx_min_worker_threads	2 # 查看innodb 情况 show ENGINE INnodb STATUS; Purge Thread 1 mysql 事务提交之后，所使用的undo log 可能就不需要了，Purge thread 会回收已经分配的undo log Page Cleaner Thread 1 处理脏页刷新操作。 缓存池 缓存池是介于磁盘和cpu 的缓冲区域，能够有效的提交访问速度">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#特点">特点</a></li>
+    <li><a href="#结构">结构</a>
+      <ol>
+        <li><a href="#内存池">内存池</a></li>
+        <li><a href="#后台线程">后台线程</a>
+          <ol>
+            <li><a href="#master-thread">Master Thread</a></li>
+            <li><a href="#io-thread">IO Thread</a></li>
+            <li><a href="#purge-thread">Purge Thread</a></li>
+            <li><a href="#page-cleaner-thread">Page Cleaner Thread</a></li>
+          </ol>
+        </li>
+        <li><a href="#缓存池">缓存池</a></li>
+        <li><a href="#lrufreeflush-list">LRU、Free、Flush List</a></li>
+        <li><a href="#重做日志缓存">重做日志缓存</a></li>
+        <li><a href="#checkout-point">checkout point</a></li>
+        <li><a href="#master-thread-1">Master Thread</a></li>
+      </ol>
+    </li>
+    <li><a href="#关键特性">关键特性</a>
+      <ol>
+        <li><a href="#插入缓存">插入缓存</a></li>
+        <li><a href="#change-buffer">change buffer</a></li>
+        <li><a href="#merge-insert-buffer">Merge Insert Buffer</a></li>
+        <li><a href="#两次写">两次写</a></li>
+        <li><a href="#自适应哈希索引">自适应哈希索引</a></li>
+        <li><a href="#异步io">异步io</a></li>
+        <li><a href="#刷新邻接页">刷新邻接页</a></li>
+      </ol>
+    </li>
+    <li><a href="#启动关闭恢复">启动、关闭、恢复</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" >
+                数据库
+            </a>
+        
+            <a href="/categories/mysql/" >
+                mysql
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E5%86%85%E5%AD%98/">Mysql内存</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 04, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 3 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>在Mysql 5.5 之后是默认存储引擎</p>
+<p><strong>是第一个支持ACID 事务的存储引擎</strong></p>
+<h1 id="特点">特点</h1>
+<p>行锁设置、MVCC 、支持外键、提供一致性非锁定读</p>
+<h1 id="结构">结构</h1>
+<img src="/Users/peilizhi/Library/Application Support/typora-user-images/image-20211220125057135.png" alt="image-20211220125057135" style="zoom:50%;" />
+<h2 id="内存池">内存池</h2>
+<ol>
+<li>共多个线程共享数据</li>
+<li>缓存磁盘中的文件，，方便快速读取</li>
+<li>重做日志缓冲</li>
+</ol>
+<h2 id="后台线程">后台线程</h2>
+<ol>
+<li>刷新缓存池中的数据，保证数据是最近的</li>
+<li>将缓存池中的数据存进磁盘</li>
+</ol>
+<h3 id="master-thread">Master Thread</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>功能：将缓存池中的数据异步刷新到磁盘中
+</span></span><span style="display:flex;"><span>负责：脏页的刷新，合并插入缓存，UNDO 页的回收
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="io-thread">IO Thread</h3>
+<p>InnoDB 使用大量的 AIO 来处理写IO请求</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>包括： write、read 、insert buffer、log IO 
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看</span>innodb <span style="color:#960050;background-color:#1e0010">版本</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> VARIABLES <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;innodb_version&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看</span>innodb <span style="color:#960050;background-color:#1e0010">线程</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SHOW</span> VARIABLES <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;%_threads&#39;</span>;
+</span></span><span style="display:flex;"><span>innodb_ddl_threads	<span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>innodb_log_writer_threads	<span style="color:#66d9ef">ON</span>
+</span></span><span style="display:flex;"><span>innodb_parallel_read_threads	<span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>innodb_purge_threads	<span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>innodb_read_io_threads	<span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>innodb_write_io_threads	<span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>max_delayed_threads	<span style="color:#ae81ff">20</span>
+</span></span><span style="display:flex;"><span>max_insert_delayed_threads	<span style="color:#ae81ff">20</span>
+</span></span><span style="display:flex;"><span>myisam_repair_threads	<span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>mysqlx_min_worker_threads	<span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看</span>innodb <span style="color:#960050;background-color:#1e0010">情况</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> ENGINE INnodb STATUS;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="purge-thread">Purge Thread</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>mysql 事务提交之后，所使用的undo log 可能就不需要了，Purge thread 会回收已经分配的undo log
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="page-cleaner-thread">Page Cleaner Thread</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>处理脏页刷新操作。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="缓存池">缓存池</h2>
+<p>缓存池是介于磁盘和cpu 的缓冲区域，能够有效的提交访问速度</p>
+<p>被实现成页面链表</p>
+<p><strong>查询数据先查询缓存池内的数据，没有查到的话就查数据库，之后将数据Fix 进缓存池，之后修改的时候先修改缓存池，并且在合适的时候将数据写进磁盘</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看缓存池的大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> VARIABLES <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;INNODB_buffer_pool_size&#39;</span>;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>缓存池中有数据页、索引页、undo页，插入缓存、自适应哈希索引、Innodb存储的锁信息、数据字典信息</p>
+<p>内存的结构：</p>
+<img src="https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202212042355378.png" alt="image-20211220223014409" style="zoom:50%;" />
+<h2 id="lrufreeflush-list">LRU、Free、Flush List</h2>
+<p><strong>每一页默认大小为16k</strong></p>
+<p>LRU：最近最少使用策略。将最近读到的页放入到队列的开头，将很久之前读到的数据就在队尾，当队列不能存放新的页时候，清除队尾中的页</p>
+<p>InnoDB 使用的是优化的LRU,读到的页并不放在队列开头，而是放在队列的 5/8位置(midpoint )处，并且可以通过参数设置innodb_old_blocks_time用于表示页读到mi d 位置处还需要多久才放入到热端。</p>
+<p>这么做是为了避免有一些s q l 操作（扫描整个表）频繁将数据放入到开头，其实这些数据并不是访问次数最多的，只是临时查到了；</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看</span>midpoint <span style="color:#960050;background-color:#1e0010">位置</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;innodb_old_blocks_pct&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看多少时间放入到热端</span>,<span style="color:#960050;background-color:#1e0010">值越大，前面的数据越不容易刷出</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;innodb_old_block_time&#39;</span>;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>数据库刚启动的时候，LRU 队列的是空的，数据都在Free list 中，当需要从缓存中进行分页时候，首先从Free list查看是否有可用的空闲页，有则将该页将Free list 中删除，并加入到LRU List 中，否则根据LRU 算法淘汰末尾的页，将该内存空间分配给新的页</p>
+<p>Innodb 支持压缩页技术，将原本的16k 压缩成2k,4k,8k.压缩页组成的队列是 unzip_LRU，unzip_LRU 包含在LRU List 中</p>
+<p>在LRU 列表中被修改的页就是脏页，脏页存在Flush list 中</p>
+<h2 id="重做日志缓存">重做日志缓存</h2>
+<p>在内存中还有一部分区域用于 存储重做日志，Innodb 首先将重做日志存入内存中的重做日志缓存，之后再写入重做日志文件。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看重做日志缓存大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;innodb_log_buffer_size&#39;</span>; <span style="color:#ae81ff">16</span>M
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>重做日志缓存不需要特别大，因为将缓存中的内容刷新到重做日志文件的频率很快</p>
+<p>刷新到重做日志的时机：</p>
+<ul>
+<li>Master Thread 每一秒将重做日志缓存 写入到重做日志文件</li>
+<li>事务提交 的时候</li>
+<li>重做日志缓存空间中剩余空间小于1/2 时</li>
+</ul>
+<h2 id="checkout-point">checkout point</h2>
+<p>数据库先写重做日志文件，再写入磁盘。来满足事务的持久性</p>
+<p>在数据库宕机的时候，可以将重做日志日志文件写入到磁盘，保证数据不丢失,checkout point 保证写入的数据不会太多，只刷新checkout 之后的操作。</p>
+<p>checkout解决：</p>
+<ul>
+<li>缩短数据库恢复时间</li>
+<li>缓存池不够时，将脏页刷进磁盘</li>
+<li>重做日志不可用时，刷新脏页</li>
+</ul>
+<p>如果缓存没有空余的空间时，淘汰很久没用的页，如果页是脏页，就强制执行checkout point，写入磁盘</p>
+<p>重做日志文件是循环覆盖的，如果被覆盖的内容还是需要使用的，就强制执行checkout point，写入磁盘</p>
+<p>Checkout point 可以分为两种： Sharp Checkout(关闭数据库时执行)、Fuzzy Checkout</p>
+<p>执行Fuzzy Checkout 的时机</p>
+<ul>
+<li>
+<p>Master thread ：每十秒将脏页以一定的比例写入到磁盘</p>
+</li>
+<li>
+<p>Flush_LRU_List： LRU 要留100页空余可用，不够时，尾部页移除，如果是脏页就Checkout point</p>
+</li>
+<li>
+<p>重做日志不可用</p>
+</li>
+<li>
+<p>Dirty page too much</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">缓存池中脏页的最大占比</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> variables <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;innodb_max_dirty_pages_pct&#39;</span>;  <span style="color:#ae81ff">90</span><span style="color:#f92672">%</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h2 id="master-thread-1">Master Thread</h2>
+<p>Master Thread 具有最高线程优先级。内部有多个loop ：loop、backgroup loop、flush loop、suspend loop</p>
+<p>Loop:</p>
+<ul>
+<li>每一秒做的事
+<ol>
+<li>重做日志缓存刷新到磁盘，尽管事务还没有提交【总是】</li>
+<li>合并插入缓存【可能】：前一秒内IO 操作&lt; 5</li>
+<li>至多刷新100个脏页到磁盘【可能】 ： 实际脏页数&gt; 最大脏页百分比</li>
+<li>没有活动，切换到backgroud loop【可能】</li>
+</ol>
+</li>
+<li>每十秒做的事
+<ol>
+<li>刷新100个脏页到磁盘【可能】： 10秒内Io 次数&lt;200</li>
+<li>合并至多5个插入缓存【总是】</li>
+<li>将日志缓存刷新到磁盘【总是】</li>
+<li>删除无用的undo 页【总是】对表的更新、删除操作，原来的行被标记删除，如果后续没有使用，就执行删除</li>
+<li>刷新100个脏页到磁盘【总是】</li>
+</ol>
+</li>
+</ul>
+<p>Backgroup loop:(数据库空闲或则数据库关闭)</p>
+<ul>
+<li>删除无用的undo 页【总是】</li>
+<li>合并20个插入缓存【总是】</li>
+<li>跳回主循环【总是】</li>
+<li>不断刷新100页直到满足条件（会跳到flush loop）</li>
+</ul>
+<p>flush loop 如果没什么可做的话会进入suspend loop 会将Master Thread 暂时挂起，等待事件发生。</p>
+<h1 id="关键特性">关键特性</h1>
+<h2 id="插入缓存">插入缓存</h2>
+<p>聚集索引：以主键建立的索引，索引的顺序与主键的顺序是一致的。一个表只能有一个聚集索引</p>
+<p>非聚集索引：除了主键以外的索引。</p>
+<p>Inner buffer 并不存在缓存中，而是实际的物理页。</p>
+<p>对于非聚集索引的插入或者更新操作，不是直接插入到索引页，先判断插入到非聚餐索引页是否存在缓冲池，如果在就直接插入，如果不在就先放在insert buffer 对象中，再以一定的频率和情况进行insert buffer 和辅助索引页字节点 merge 操作</p>
+<p>使用Insert buffer 条件</p>
+<ul>
+<li>索引是辅助索引</li>
+<li>索引不唯一</li>
+</ul>
+<p>如果在写密集的情况下，insert buffer 会占用过多的缓冲池，可以控制最多占比</p>
+<h2 id="change-buffer">change buffer</h2>
+<p>InnoDB对 Insert、de lete、update 都做缓冲，分别是；Insert Buffer ,Delete Buffer, Purge Buffer.</p>
+<p>Update 分为两步：</p>
+<ol>
+<li>原数据标记删除</li>
+<li>真正删除原数据</li>
+</ol>
+<p>Delete Buffer 对应第一步，Purge Buffer对应第二步</p>
+<p>Insert Buffer 、Change Buffer 都是B+ 树</p>
+<h2 id="merge-insert-buffer">Merge Insert Buffer</h2>
+<p>Merge Insert Buffer  就是将插入缓存 合并到实际的缓存中</p>
+<p>Merge Insert Buffer 的操作时机：</p>
+<ul>
+<li>辅助索引页被读到缓存</li>
+<li>Insert Buffer Bitmap 页追踪到改辅助索引页已无可用空间</li>
+</ul>
+<h2 id="两次写">两次写</h2>
+<p>部分写失效：数据库正在写入某页到表中，并且只写了一部分，此时数据库发生宕机。</p>
+<p>此时可以通过重做日志文件来恢复，但是重做日志中记录的是对页的物理操作，比如偏移量，如果页已经失效，那么偏移量就没有意义啦。</p>
+<p>double wirte 分为两部分，一部分是内存中的double write buffer ，大小是2mb .另一个物理磁盘上共享空间上连续的128页，2MB.</p>
+<p>在对脏页进行刷新对时候，通过mempy 将脏页复制到内存中的double write buffer，之后double write buffer 分两次1MB 顺序写到共享空间，之后调用fsync 函数同步磁盘</p>
+<h2 id="自适应哈希索引">自适应哈希索引</h2>
+<p>哈希是一种快速的查询方式，时间一般O（1），B+树的查询次数与树的高度有关。</p>
+<p>Innodb 会根据查询自动建立哈希索引，需要对页的连续访问模式是一样的，并且只支持等值查询</p>
+<h2 id="异步io">异步io</h2>
+<p>异步io不会等待i o的执行结果。异步i o可以将多个i o进行合并</p>
+<h2 id="刷新邻接页">刷新邻接页</h2>
+<p>当有脏页需要刷新时，会检查与它相临的页是否是脏页，如果是就一起刷新。</p>
+<p>可以将多个i o 合并成一个io</p>
+<h1 id="启动关闭恢复">启动、关闭、恢复</h1>
+<p>在关闭mysql 时，innodb_fast_shutdown 影响着innodb 的行为，默认为1</p>
+<p>innodb_fast_shutdown：</p>
+<ul>
+<li>0：Innodb完成所有 full purge ,merge insert buffer .将脏页刷新到磁盘。在innodb 升级时必须调成0</li>
+<li>1: 不需要 full purge ,merge insert buffer，但是将脏页刷新到磁盘</li>
+<li>2: 不需要 full purge ,merge insert buffer，不将脏页刷新到磁盘，将操作写到日志文件中，数据库启动的时候，进行恢复操作</li>
+</ul>
+<p>Innodb_force_recovery 影响innodb 恢复情况。默认是0</p>
+<ul>
+<li>1: 忽略检查到的corrupt 页</li>
+<li>2: 阻止master thread</li>
+<li>3: 不进行事务回滚</li>
+<li>4: 不进行插入缓存合并</li>
+<li>5: 不查看undo log ,忽略位提交的事务</li>
+<li>6: 不进行前滚操作</li>
+</ul>
+<p><strong>Innodb_force_recovery &gt; 0 ,不能执行 insert、update 、delete</strong></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%AD%BB%E9%94%81/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql死锁</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql技巧</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql事务</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql文件</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E8%A1%A8/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql表</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

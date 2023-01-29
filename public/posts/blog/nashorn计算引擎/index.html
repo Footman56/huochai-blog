@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='背景 最近工作上有需求需要了解 java 整合 js 计算引擎，就看了看同事之前写的代码，写的真好，对我有一种醍醐灌顶的感觉，也借此机会学习学习js 计算引擎
+项目中使用的是 Nashorn 引擎，
+Nashorn官网
+使用 Nashorn 引擎计算的本质，在执行一个j s 函数，函数中可以自定义一些变量和函数，也可以使用j s 原生的函数，在使用自定义函数的时候需要告诉函数是怎么运行的。计算的结果也放在这个函数的作用域中，可以有多个计算结果
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 import javax.script.*; public class EvalScript { public static void main(String[] args) throws Exception { // create a script engine manager ScriptEngineManager factory = new ScriptEngineManager(); // create a Nashorn script engine ScriptEngine engine = factory.getEngineByName(&amp;#34;nashorn&amp;#34;); // evaluate JavaScript statement try { // 这里执行的时候 等同于执行 js脚本 engine.'>
+<title>Js计算引擎</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/blog/nashorn%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='Js计算引擎'>
+<meta property='og:description' content='背景 最近工作上有需求需要了解 java 整合 js 计算引擎，就看了看同事之前写的代码，写的真好，对我有一种醍醐灌顶的感觉，也借此机会学习学习js 计算引擎
+项目中使用的是 Nashorn 引擎，
+Nashorn官网
+使用 Nashorn 引擎计算的本质，在执行一个j s 函数，函数中可以自定义一些变量和函数，也可以使用j s 原生的函数，在使用自定义函数的时候需要告诉函数是怎么运行的。计算的结果也放在这个函数的作用域中，可以有多个计算结果
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 import javax.script.*; public class EvalScript { public static void main(String[] args) throws Exception { // create a script engine manager ScriptEngineManager factory = new ScriptEngineManager(); // create a Nashorn script engine ScriptEngine engine = factory.getEngineByName(&amp;#34;nashorn&amp;#34;); // evaluate JavaScript statement try { // 这里执行的时候 等同于执行 js脚本 engine.'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/blog/nashorn%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-11-29T16:30:31&#43;08:00'/><meta property='article:modified_time' content='2022-11-29T16:30:31&#43;08:00'/>
+<meta name="twitter:title" content="Js计算引擎">
+<meta name="twitter:description" content="背景 最近工作上有需求需要了解 java 整合 js 计算引擎，就看了看同事之前写的代码，写的真好，对我有一种醍醐灌顶的感觉，也借此机会学习学习js 计算引擎
+项目中使用的是 Nashorn 引擎，
+Nashorn官网
+使用 Nashorn 引擎计算的本质，在执行一个j s 函数，函数中可以自定义一些变量和函数，也可以使用j s 原生的函数，在使用自定义函数的时候需要告诉函数是怎么运行的。计算的结果也放在这个函数的作用域中，可以有多个计算结果
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 import javax.script.*; public class EvalScript { public static void main(String[] args) throws Exception { // create a script engine manager ScriptEngineManager factory = new ScriptEngineManager(); // create a Nashorn script engine ScriptEngine engine = factory.getEngineByName(&amp;#34;nashorn&amp;#34;); // evaluate JavaScript statement try { // 这里执行的时候 等同于执行 js脚本 engine.">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#背景">背景</a></li>
+    <li><a href="#使用">使用</a>
+      <ol>
+        <li><a href="#put">put</a></li>
+        <li><a href="#objectbindproperties">Object.bindProperties</a></li>
+        <li><a href="#get">get</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/java/" >
+                java
+            </a>
+        
+            <a href="/categories/nashorn/" >
+                Nashorn
+            </a>
+        
+            <a href="/categories/javascript/" >
+                JavaScript
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/blog/nashorn%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E/">Js计算引擎</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Nov 29, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 2 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="背景">背景</h1>
+<p>最近工作上有需求需要了解 java 整合 js 计算引擎，就看了看同事之前写的代码，写的真好，对我有一种醍醐灌顶的感觉，也借此机会学习学习js 计算引擎</p>
+<p>项目中使用的是 Nashorn 引擎，</p>
+<p><a class="link" href="https://docs.oracle.com/javase/10/nashorn/introduction.htm#JSNUG136"  target="_blank" rel="noopener"
+    >Nashorn官网</a></p>
+<h1 id="使用">使用</h1>
+<p>Nashorn 引擎计算的本质，在执行一个j s 函数，函数中可以自定义一些变量和函数，也可以使用j s 原生的函数，在使用自定义函数的时候需要告诉函数是怎么运行的。计算的结果也放在这个函数的作用域中，可以有多个计算结果</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">import</span> javax.script.*<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EvalScript</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// create a script engine manager
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        ScriptEngineManager factory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ScriptEngineManager<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// create a Nashorn script engine
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        ScriptEngine engine <span style="color:#f92672">=</span> factory<span style="color:#f92672">.</span><span style="color:#a6e22e">getEngineByName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;nashorn&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// evaluate JavaScript statement
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e">// 这里执行的时候 等同于执行 js脚本 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            engine<span style="color:#f92672">.</span><span style="color:#a6e22e">eval</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;print(&#39;Hello, World!&#39;);&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ScriptException se<span style="color:#f92672">)</span> <span style="color:#f92672">{</span> se<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span> <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果要使用自定义函数、变量的话，就需要再引擎里面声明这些自定义函数、变量。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 公式计算
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     *
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param params      参数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">calcuate</span><span style="color:#f92672">(</span>List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> formulationList<span style="color:#f92672">,</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Double<span style="color:#f92672">&gt;</span> params<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>CollectionUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">isEmpty</span><span style="color:#f92672">(</span>formulationList<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> StringUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">EMPTY</span><span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取自定义解析器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        ScriptEngine engine <span style="color:#f92672">=</span> factory<span style="color:#f92672">.</span><span style="color:#a6e22e">getScriptEngine</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>IScriptStrategy iScriptStrategy <span style="color:#f92672">:</span> factory<span style="color:#f92672">.</span><span style="color:#a6e22e">getScriptStrategyList</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">final</span> EFunctionEnum func <span style="color:#f92672">=</span> iScriptStrategy<span style="color:#f92672">.</span><span style="color:#a6e22e">getFunc</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 绑定解析器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            String key <span style="color:#f92672">=</span> func<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>            engine<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>key<span style="color:#f92672">,</span> iScriptStrategy<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 绑定到引擎上,用于绑定自定义函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            engine<span style="color:#f92672">.</span><span style="color:#a6e22e">eval</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Object.bindProperties(this, &#34;</span> <span style="color:#f92672">+</span> key <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;)&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 绑定参数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        params<span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>engine<span style="color:#f92672">::</span>put<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 计算
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>String formulation <span style="color:#f92672">:</span> formulationList<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            engine<span style="color:#f92672">.</span><span style="color:#a6e22e">eval</span><span style="color:#f92672">(</span>formulation<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 可以获取多个返回,直接从引擎到作用域中获取
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">final</span> Object vale <span style="color:#f92672">=</span> engine<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;得分&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Object o <span style="color:#f92672">=</span> engine<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;判断&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> String doubleValue <span style="color:#f92672">=</span> DoubleUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">handleDoubleValue</span><span style="color:#f92672">(</span>o<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;判断 = &#34;</span> <span style="color:#f92672">+</span> doubleValue<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;DoubleUtil.handleDoubleValue(vale) = &#34;</span> <span style="color:#f92672">+</span> DoubleUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">handleDoubleValue</span><span style="color:#f92672">(</span>vale<span style="color:#f92672">));</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> DoubleUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">handleDoubleValue</span><span style="color:#f92672">(</span>vale<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="put">put</h2>
+<p>put方法就是向解析器注册一个变量、函数</p>
+<p><img src="https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211301654377.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image-20221130165429843"
+	
+	
+></p>
+<h2 id="objectbindproperties">Object.bindProperties</h2>
+<p>这个方法用于向解析器绑定自定义的函数。需要先定义类，之后在将类中的所有方法放到解析器中，比较耗时</p>
+<p><strong>这里绑定的函数 需要和公式里面的函数名称保持一致</strong></p>
+<p><img src="https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211301656324.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image-20221130165634288"
+	
+	
+></p>
+<h2 id="get">get</h2>
+<p>从解析器中获取对象，常用于换取结果。j s 中可以定义多个赋值语句，get 就能获取赋值语句的结果</p>
+<p><img src="https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211301658416.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image-20221130165835375"
+	
+	
+></p>
+<p><strong>注：这里计算的时候很需要关注字段类型。</strong></p>
+<p>字符串 与 Double 计算逻辑不一致的。</p>
+<p>举例： + 运算符对应 字符串来说就是拼接，对于Double 就是相加运算</p>
+<p>再举例： &gt; 运算符对于 字段串来说 “5”&gt; &ldquo;10&rdquo; true</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/typora/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Typora</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/blog/%E6%A0%87%E7%AD%BE/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">标签</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='一、定义 1 2 数据库：物理操作文件或者其他形式文件的集合。文件包括：frm,MYD,MYI,存在二级存储器的文件 实例：后台进程以及共享内存组成。数据库实例才是真正操作文件的。是程序，处于用户与数据库之间 Mysql数据库是单进程多线程
+1 2 3 4 5 在Mysql数据库启动时会查找配置文件，根据配置文件内容启动程序，如果没有配置文件时候就按照编译时的默认参数来启动 mysql --help|grep my.cnf 指令用于查看启动配置文件的位置 etc/my.cnf /etc/mysql/my.cnf /usr/etc/my.cnf ~/.my.cnf 安装顺序加载配置文件，以最后加载到的配置项为准 1 2 配置文件中有datadir配置项，用于指定数据库文件所在路径（是一个链接） 目录的用户是Mysql、组都是Mysql 二、结构 1 2 3 4 5 6 7 8 9 组成： 连接池组件 管理服务和工作组件 SQL接口组件 查询分析组件 优化器组件 缓存组件 插件式存储引擎 物理文件 存储引擎是基于表的，不是基于数据库的
+三、InnoDB 1 2 3 支持事务，行锁，支持外键，非锁定读（读数据时不会产生锁） 采用聚簇存储，存储主键和行数据 插入缓存，二次写、自适应哈希 四、Myisam 1 2 3 不支持事务、表锁，不支持外键、支持全文索引 缓存池只缓存索引文件，不缓存数据文件 文件以.myd,.myi组成,.myd存储数据、.myi存储索引 五、连接 1 连接方式有管道、TCP/IP、UNIX套接字、命名管道 5.1、TCP/IP 1 2 TCP/IP是常见的网络连接，由客户端向服务器发起连接请求。在请求的时候需要根据权限视图来检查登录情况。 视图中制定了 host（请求地址，%代表所有），user,passwd等 5.2 UNIX套接字 1 2 3 4 在Linux、UNIX环境中可以通过UNIX套接字来连接 首先查看Unix文件位置： show variables like &amp;#39;socket&amp;#39;; 连接 mysql -udavid -S 文件位置 六、体系 1 2 内存块：缓存磁盘上的数据、为线程、进程提供公共的数据结构、重做日志缓存 后台线程：刷新内存池的数据，保证缓存池中的数据是最新的，将已存在的数据写入到磁盘空间 1、Master Thread 1 将缓存池中的数据异步刷新到磁盘：脏页的刷新、UNDO页的回收、合并插入缓存 2、IO Thread 1 2 3 InnoDB存储引擎中大量使用AIO(Async IO)来处理Io请求，IO Thread用于处理IO请求的回调 分别是write、read、insert buffer 、log IO Thread 通过show VARIABLES like &amp;#39;innodb_version&amp;#39;\G查看线程数 3、Purge Thread 1 用于回收已经使用并分配的undo页 SHOW ENGINE INNDB STATUS \G： 可以查看存储引擎的信息'>
+<title>Mysql体系</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BD%93%E7%B3%BB/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='Mysql体系'>
+<meta property='og:description' content='一、定义 1 2 数据库：物理操作文件或者其他形式文件的集合。文件包括：frm,MYD,MYI,存在二级存储器的文件 实例：后台进程以及共享内存组成。数据库实例才是真正操作文件的。是程序，处于用户与数据库之间 Mysql数据库是单进程多线程
+1 2 3 4 5 在Mysql数据库启动时会查找配置文件，根据配置文件内容启动程序，如果没有配置文件时候就按照编译时的默认参数来启动 mysql --help|grep my.cnf 指令用于查看启动配置文件的位置 etc/my.cnf /etc/mysql/my.cnf /usr/etc/my.cnf ~/.my.cnf 安装顺序加载配置文件，以最后加载到的配置项为准 1 2 配置文件中有datadir配置项，用于指定数据库文件所在路径（是一个链接） 目录的用户是Mysql、组都是Mysql 二、结构 1 2 3 4 5 6 7 8 9 组成： 连接池组件 管理服务和工作组件 SQL接口组件 查询分析组件 优化器组件 缓存组件 插件式存储引擎 物理文件 存储引擎是基于表的，不是基于数据库的
+三、InnoDB 1 2 3 支持事务，行锁，支持外键，非锁定读（读数据时不会产生锁） 采用聚簇存储，存储主键和行数据 插入缓存，二次写、自适应哈希 四、Myisam 1 2 3 不支持事务、表锁，不支持外键、支持全文索引 缓存池只缓存索引文件，不缓存数据文件 文件以.myd,.myi组成,.myd存储数据、.myi存储索引 五、连接 1 连接方式有管道、TCP/IP、UNIX套接字、命名管道 5.1、TCP/IP 1 2 TCP/IP是常见的网络连接，由客户端向服务器发起连接请求。在请求的时候需要根据权限视图来检查登录情况。 视图中制定了 host（请求地址，%代表所有），user,passwd等 5.2 UNIX套接字 1 2 3 4 在Linux、UNIX环境中可以通过UNIX套接字来连接 首先查看Unix文件位置： show variables like &amp;#39;socket&amp;#39;; 连接 mysql -udavid -S 文件位置 六、体系 1 2 内存块：缓存磁盘上的数据、为线程、进程提供公共的数据结构、重做日志缓存 后台线程：刷新内存池的数据，保证缓存池中的数据是最新的，将已存在的数据写入到磁盘空间 1、Master Thread 1 将缓存池中的数据异步刷新到磁盘：脏页的刷新、UNDO页的回收、合并插入缓存 2、IO Thread 1 2 3 InnoDB存储引擎中大量使用AIO(Async IO)来处理Io请求，IO Thread用于处理IO请求的回调 分别是write、read、insert buffer 、log IO Thread 通过show VARIABLES like &amp;#39;innodb_version&amp;#39;\G查看线程数 3、Purge Thread 1 用于回收已经使用并分配的undo页 SHOW ENGINE INNDB STATUS \G： 可以查看存储引擎的信息'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BD%93%E7%B3%BB/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-12-04T23:54:36&#43;08:00'/><meta property='article:modified_time' content='2022-12-04T23:54:36&#43;08:00'/>
+<meta name="twitter:title" content="Mysql体系">
+<meta name="twitter:description" content="一、定义 1 2 数据库：物理操作文件或者其他形式文件的集合。文件包括：frm,MYD,MYI,存在二级存储器的文件 实例：后台进程以及共享内存组成。数据库实例才是真正操作文件的。是程序，处于用户与数据库之间 Mysql数据库是单进程多线程
+1 2 3 4 5 在Mysql数据库启动时会查找配置文件，根据配置文件内容启动程序，如果没有配置文件时候就按照编译时的默认参数来启动 mysql --help|grep my.cnf 指令用于查看启动配置文件的位置 etc/my.cnf /etc/mysql/my.cnf /usr/etc/my.cnf ~/.my.cnf 安装顺序加载配置文件，以最后加载到的配置项为准 1 2 配置文件中有datadir配置项，用于指定数据库文件所在路径（是一个链接） 目录的用户是Mysql、组都是Mysql 二、结构 1 2 3 4 5 6 7 8 9 组成： 连接池组件 管理服务和工作组件 SQL接口组件 查询分析组件 优化器组件 缓存组件 插件式存储引擎 物理文件 存储引擎是基于表的，不是基于数据库的
+三、InnoDB 1 2 3 支持事务，行锁，支持外键，非锁定读（读数据时不会产生锁） 采用聚簇存储，存储主键和行数据 插入缓存，二次写、自适应哈希 四、Myisam 1 2 3 不支持事务、表锁，不支持外键、支持全文索引 缓存池只缓存索引文件，不缓存数据文件 文件以.myd,.myi组成,.myd存储数据、.myi存储索引 五、连接 1 连接方式有管道、TCP/IP、UNIX套接字、命名管道 5.1、TCP/IP 1 2 TCP/IP是常见的网络连接，由客户端向服务器发起连接请求。在请求的时候需要根据权限视图来检查登录情况。 视图中制定了 host（请求地址，%代表所有），user,passwd等 5.2 UNIX套接字 1 2 3 4 在Linux、UNIX环境中可以通过UNIX套接字来连接 首先查看Unix文件位置： show variables like &amp;#39;socket&amp;#39;; 连接 mysql -udavid -S 文件位置 六、体系 1 2 内存块：缓存磁盘上的数据、为线程、进程提供公共的数据结构、重做日志缓存 后台线程：刷新内存池的数据，保证缓存池中的数据是最新的，将已存在的数据写入到磁盘空间 1、Master Thread 1 将缓存池中的数据异步刷新到磁盘：脏页的刷新、UNDO页的回收、合并插入缓存 2、IO Thread 1 2 3 InnoDB存储引擎中大量使用AIO(Async IO)来处理Io请求，IO Thread用于处理IO请求的回调 分别是write、read、insert buffer 、log IO Thread 通过show VARIABLES like &amp;#39;innodb_version&amp;#39;\G查看线程数 3、Purge Thread 1 用于回收已经使用并分配的undo页 SHOW ENGINE INNDB STATUS \G： 可以查看存储引擎的信息">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#一定义">一、定义</a></li>
+    <li><a href="#二结构">二、结构</a></li>
+    <li><a href="#三innodb">三、InnoDB</a></li>
+    <li><a href="#四myisam">四、Myisam</a></li>
+    <li><a href="#五连接">五、连接</a>
+      <ol>
+        <li><a href="#51tcpip">5.1、TCP/IP</a></li>
+        <li><a href="#52-unix套接字">5.2 UNIX套接字</a></li>
+      </ol>
+    </li>
+    <li><a href="#六体系">六、体系</a>
+      <ol>
+        <li><a href="#1master-thread">1、Master Thread</a></li>
+        <li><a href="#2io-thread">2、IO Thread</a></li>
+        <li><a href="#3purge-thread">3、Purge Thread</a></li>
+      </ol>
+    </li>
+    <li><a href="#七内存">七、内存</a>
+      <ol>
+        <li><a href="#插入缓冲">插入缓冲</a></li>
+        <li><a href="#两次写">两次写</a></li>
+        <li><a href="#自适应哈希ahi">自适应哈希（AHI）</a></li>
+        <li><a href="#异步io">异步IO</a></li>
+        <li><a href="#刷新邻接页">刷新邻接页</a></li>
+        <li><a href="#启动关闭恢复">启动、关闭、恢复</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" >
+                数据库
+            </a>
+        
+            <a href="/categories/mysql/" >
+                mysql
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BD%93%E7%B3%BB/">Mysql体系</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 04, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 2 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="一定义">一、定义</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>数据库：物理操作文件或者其他形式文件的集合。文件包括：frm,MYD,MYI,存在二级存储器的文件
+</span></span><span style="display:flex;"><span>实例：后台进程以及共享内存组成。数据库实例才是真正操作文件的。是程序，处于用户与数据库之间
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Mysql数据库是单进程多线程</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>在Mysql数据库启动时会查找配置文件，根据配置文件内容启动程序，如果没有配置文件时候就按照编译时的默认参数来启动
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mysql --help|grep my.cnf 指令用于查看启动配置文件的位置
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>etc/my.cnf /etc/mysql/my.cnf /usr/etc/my.cnf ~/.my.cnf  安装顺序加载配置文件，以最后加载到的配置项为准
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>配置文件中有datadir配置项，用于指定数据库文件所在路径（是一个链接）
+</span></span><span style="display:flex;"><span>目录的用户是Mysql、组都是Mysql
+</span></span></code></pre></td></tr></table>
+</div>
+</div><img src="/Users/mac/Library/Application Support/typora-user-images/image-20210601000049908.png" alt="image-20210601000049908" style="zoom:50%;" />
+<img src="/Users/mac/Library/Application Support/typora-user-images/image-20210601000138493.png" alt="image-20210601000138493" style="zoom:50%;" />
+<h1 id="二结构">二、结构</h1>
+<img src="/Users/mac/Desktop/mysql.png" alt="mysql" style="zoom:50%;" />
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-apl" data-lang="apl"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">组成：</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#960050;background-color:#1e0010">连接池组件</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">管理服务和工作组件</span>
+</span></span><span style="display:flex;"><span>    SQL<span style="color:#960050;background-color:#1e0010">接口组件</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">查询分析组件</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">优化器组件</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">缓存组件</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">插件式存储引擎</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">物理文件</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>存储引擎是基于表的，不是基于数据库的</strong></p>
+<h1 id="三innodb">三、InnoDB</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>支持事务，行锁，支持外键，非锁定读（读数据时不会产生锁）
+</span></span><span style="display:flex;"><span>采用聚簇存储，存储主键和行数据
+</span></span><span style="display:flex;"><span>插入缓存，二次写、自适应哈希
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="四myisam">四、Myisam</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>不支持事务、表锁，不支持外键、支持全文索引
+</span></span><span style="display:flex;"><span>缓存池只缓存索引文件，不缓存数据文件
+</span></span><span style="display:flex;"><span>文件以.myd,.myi组成,.myd存储数据、.myi存储索引
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="五连接">五、连接</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>连接方式有管道、TCP/IP、UNIX套接字、命名管道
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="51tcpip">5.1、TCP/IP</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>TCP/IP是常见的网络连接，由客户端向服务器发起连接请求。在请求的时候需要根据权限视图来检查登录情况。
+</span></span><span style="display:flex;"><span>视图中制定了 host（请求地址，%代表所有），user,passwd等
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="52-unix套接字">5.2 UNIX套接字</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>在Linux、UNIX环境中可以通过UNIX套接字来连接
+</span></span><span style="display:flex;"><span>首先查看Unix文件位置： show variables like &#39;socket&#39;;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>连接 mysql -udavid -S 文件位置
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="六体系">六、体系</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>内存块：缓存磁盘上的数据、为线程、进程提供公共的数据结构、重做日志缓存
+</span></span><span style="display:flex;"><span>后台线程：刷新内存池的数据，保证缓存池中的数据是最新的，将已存在的数据写入到磁盘空间
+</span></span></code></pre></td></tr></table>
+</div>
+</div><img src="/Users/mac/Library/Application Support/typora-user-images/image-20210607222906047.png" alt="image-20210607222906047" style="zoom:50%;" />
+<h2 id="1master-thread">1、Master Thread</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>将缓存池中的数据异步刷新到磁盘：脏页的刷新、UNDO页的回收、合并插入缓存
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="2io-thread">2、IO Thread</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>InnoDB存储引擎中大量使用AIO(Async IO)来处理Io请求，IO Thread用于处理IO请求的回调
+</span></span><span style="display:flex;"><span>分别是write、read、insert buffer 、log IO Thread  
+</span></span><span style="display:flex;"><span>通过show VARIABLES like &#39;innodb_version&#39;\G查看线程数
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="3purge-thread">3、Purge Thread</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>用于回收已经使用并分配的undo页
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>SHOW ENGINE INNDB STATUS \G： 可以查看存储引擎的信息</strong></p>
+<h1 id="七内存">七、内存</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>InnoDB是基于磁盘存储的，并将内容按照页的方式进行管理。使用缓存来解决内存与磁盘之间读写的差异。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>在数据库进行读取页操作的时候，首先将读取到的页存放在缓冲池中，称为页FIX在缓冲池，下次读取相同的页的时候，
+</span></span><span style="display:flex;"><span>首先判断页在不在缓冲池，如果在就读取缓冲池，不在就读取数据库
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>数据库中页的修改操作，首先修改缓冲池中的页，然后再以一定的频率刷新到磁盘。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>缓冲池缓存的数据页型有：索引页，数据页，undo页，插入缓冲、自适应哈希索引、InnODB存储的锁信息、数据字典
+</span></span></code></pre></td></tr></table>
+</div>
+</div><img src="/Users/mac/Library/Application Support/typora-user-images/image-20210608155040562.png" alt="image-20210608155040562" style="zoom:50%;" />
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>缓冲池中存在三种队列：LRU、Free、Flush.
+</span></span><span style="display:flex;"><span>LRU队列存在查询过的页（有脏页）
+</span></span><span style="display:flex;"><span>Free队列存放未查询过的页
+</span></span><span style="display:flex;"><span>Flush存放脏页（修改过的页）
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>LRU队列采用谁先被访问谁在队列头的策略。但是有新的页进入队列的时候不是放在队列头，而是放在队列37%的位置（midpoint）[参数是innodb_old_blocks_pct]。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>重做日志缓冲
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>InnoDB首次将重做日志信息写入到重做日志缓存，之后按照一定频率将其刷新到重做日志文件（每一秒刷新一次）
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>刷新条件：
+</span></span><span style="display:flex;"><span>Master Thread 每一秒将重做日志缓冲刷新到重做日志文件
+</span></span><span style="display:flex;"><span>每一事务提交时
+</span></span><span style="display:flex;"><span>当重做日志缓冲池剩余空间小于50%
+</span></span><span style="display:flex;"><span>脏页数量太多
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[为了避免数据丢失，先将数据写入到重做日志，再写入页中]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>在数据库发生宕机之后，只需将Checkpoint 后的重做日志文件进行恢复，不需要完全恢复。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>InnoDB存储引擎，使用LSN标记版本 （8字节数字）</strong></p>
+<p><strong>Checkpoint就是将缓存中的脏页刷回磁盘</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>有两种刷新方式：
+</span></span><span style="display:flex;"><span>	Sharp Checkpoint: 在数据库关闭时将所有脏页都刷回磁盘
+</span></span><span style="display:flex;"><span>	Fuzzy Checkpoint: 每次只刷新一部分脏页
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="插入缓冲">插入缓冲</h2>
+<p><strong>聚集索引：数据行的物理顺序与列值的顺序是一样的。一张表只有一个聚集索引</strong></p>
+<p><strong>非聚集索引：数据行的物理顺序与列值的顺序是不一样的</strong></p>
+<p>如果我们查询的值在索引的范围内，就只需做一次查询，如果查询的结果中还有其他的值，就需要再查询所有【二次查询】</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Insert Buffer 和数据页一样，都是物理页的组成部分
+</span></span><span style="display:flex;"><span>如果采用自增主键的方式，插入会很快
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>两个条件：
+</span></span><span style="display:flex;"><span>	索引是辅助索引
+</span></span><span style="display:flex;"><span>	索引不唯一
+</span></span><span style="display:flex;"><span>将多个插入合并到一个插入
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>对Insert、Delete、Update，操作的时候，先写入缓存，在合适的时机将 Insert Buffer合并到索引中。
+</span></span><span style="display:flex;"><span>时机是： 辅助索引页被读取到缓冲池中、Master Thread 、Insert Buffer Bitmap页追踪到改辅助索引页已无可使用空间
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="两次写">两次写</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>doublewrite有两部分组成：一部分是内存中的doublewirte buffer 大小为2M，另一部分为物理磁盘上共享表空间上连续的128页，大小为2M
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>第一次写是将被损坏的页写入磁盘
+</span></span><span style="display:flex;"><span>第二次写是将重做日志中失败的内容写入磁盘
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>skip_innodb_doublewrite 开关来控制是否开启两次写
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="自适应哈希ahi">自适应哈希（AHI）</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>innodb会自动为查询频繁的数据建立索引。能建立哈希索引带速度提升的时候，会自动创建自适应哈希
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>自适应哈希适合等值查询，并且要求访问的模式是一样的（查询时，参数出现的位置要固定）
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="异步io">异步IO</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Innodb引擎不需要等待一个请求彻底执行完成之后，在返回结果。
+</span></span><span style="display:flex;"><span>并且在查询的时候也可以进行Merge iO操作，将查询连续的页作为一次查询
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>read ahead 方式的读取是通过AIO完成的，脏页的刷新（磁盘的写入）都是通过AIO实现的
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="刷新邻接页">刷新邻接页</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>在执行脏页刷新的时候，如果邻接的页也是脏页的话，也就merge io ，一起刷新
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="启动关闭恢复">启动、关闭、恢复</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>innodb_fast_shutdown 影响在Mysql关闭的时候，Innodb引擎的处理。默认值是1
+</span></span><span style="display:flex;"><span>	0：在数据库关闭的时候，Innodb执行所有full purge and merge insert purge,并将所有脏页刷回磁盘；【在innodb升级的时候，必须调为0】
+</span></span><span style="display:flex;"><span>	1：不执行full purge and merge insert purge，仅执行将所有脏页刷回磁盘
+</span></span><span style="display:flex;"><span>	2：不执行full purge and merge insert purge也不执行将所有脏页刷回磁盘。仅将操作写入日志，在下次启动时进行恢复。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>尽量不要使用Kill指令</strong></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%AD%BB%E9%94%81/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql死锁</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql技巧</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql事务</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql文件</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E8%A1%A8/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql表</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

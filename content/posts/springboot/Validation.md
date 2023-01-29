@@ -554,5 +554,14 @@ public @interface FixedValueValidator {
 校验是全部校验完成之后才结束，可以配置只有一个错误就提前退出
 
 ```java
+@Bean
+public Validator validator() {
+    ValidatorFactory validatorFactory = Validation.byProvider(HibernateValidator.class)
+            .configure()
+            // 快速失败模式
+            .failFast(true)
+            .buildValidatorFactory();
+    return validatorFactory.getValidator();
+}
 ```
 

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>blog on 火柴的博客</title>
+        <link>https://blog.huochai.xyz/tags/blog/</link>
+        <description>Recent content in blog on 火柴的博客</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en-us</language>
+        <lastBuildDate>Mon, 28 Nov 2022 19:34:30 +0800</lastBuildDate><atom:link href="https://blog.huochai.xyz/tags/blog/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>购买域名服务器</title>
+        <link>https://blog.huochai.xyz/posts/blog/%E8%B4%AD%E4%B9%B0%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8/</link>
+        <pubDate>Mon, 28 Nov 2022 19:34:30 +0800</pubDate>
+        
+        <guid>https://blog.huochai.xyz/posts/blog/%E8%B4%AD%E4%B9%B0%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8/</guid>
+        <description>&lt;p&gt;域名是打开与外界沟通的首要条件&lt;/p&gt;
+&lt;p&gt;购买域名时个人用户的就首要考虑便宜，续费方便，安全&lt;/p&gt;
+&lt;p&gt;在阿里云上购买域名 ：huochai.xyz&lt;/p&gt;
+&lt;p&gt;配置dns 记录&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281930575.png&#34; alt=&#34;image-20221123140628765&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;img src=&#34;https://blog.huochai.xyz/Users/peilizhi/Library/Application Support/typora-user-images/image-20221125002659153.png&#34; alt=&#34;image-20221125002659153&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;p&gt;服务器还是购买的阿里云。使用老客户优惠。&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281930078.png&#34; alt=&#34;image-20221124171710800&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;p&gt;公网ip:47.93.247.254&lt;/p&gt;
+&lt;p&gt;并且已经建立dns 解析&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281930822.png&#34; alt=&#34;image-20221124171947723&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;p&gt;购买域名、服务器之后要进行备案&lt;/p&gt;
+&lt;p&gt;可以选择在阿里云上直接进行备案，备案就是填一些真实信息&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281930686.png&#34; alt=&#34;image-20221124172154438&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;p&gt;备案的时候可以选择身份证上所在的地址，如果地址不同的话需要提交暂住证&lt;/p&gt;
+&lt;p&gt;修改域名服务器&lt;/p&gt;
+&lt;p&gt;从阿里云上购买域名之后，默认使用阿里云的DNS服务器，想要修改为使用Cloudflare 名称服务器&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;先注册Cloudflare 账号，再登录&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;找到dns 服务器&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281930486.png&#34; alt=&#34;image-20221125002448353&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;登录阿里云修改&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;登录&lt;a class=&#34;link&#34; href=&#34;https://dc.console.aliyun.com/?spm=a2c4g.11186623.0.0.2bc87fc4agTJ4A&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;阿里云域名控制台&lt;/a&gt;。&lt;/li&gt;
+&lt;li&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202211281930758.png&#34; alt=&#34;image-20221125002548339&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;把Cloudflare 里面dns域名服务器复制过来，再修改&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;查看dns 解析过程&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 显示解析过程&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dig huochai.xyz +trace 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nslookup huochai.xyz
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;在国内购买域名之后都需要进行备案，否则外界无法使用https 访问&lt;/p&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>

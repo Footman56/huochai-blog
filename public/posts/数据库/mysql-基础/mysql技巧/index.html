@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='1、汉字排序 默认编码是utf8mb4，所以其实数据库存储的并不是汉字文本。按照内部的存储方式
+1 select * from table order by convert(filed using gbk) asc; 2、explain explain 用于查看sql执行的执行的情况
+1 EXPLAIN SELECT * FROM table_name WHERE plan_id =&amp;#39;&amp;#39;; id select_type table type possible_keys key key_len ref rows extra SELECT 查询的标识符 SELECT 查询的类型. 查询的是哪个表 此次查询中可能选用的索引 此次查询中确切使用到的索引. 哪个字段或常数与 key 一起被使用 显示此查询一共扫描了多少行. 这个是一个估计值. 额外的信息 select_type SIMPLE 表示此查询不包含 UNION 查询或子查询 PRIMARY, 表示此查询是最外层的查询 UNION, 表示此查询是 UNION 的第二或随后的查询 UNION RESULT, UNION 的结果 SUBQUERY, 子查询中的第一个 SELECT type 可以根据type 来确定如何查询
+system：表中只有一条数据.'>
+<title>Mysql技巧</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='Mysql技巧'>
+<meta property='og:description' content='1、汉字排序 默认编码是utf8mb4，所以其实数据库存储的并不是汉字文本。按照内部的存储方式
+1 select * from table order by convert(filed using gbk) asc; 2、explain explain 用于查看sql执行的执行的情况
+1 EXPLAIN SELECT * FROM table_name WHERE plan_id =&amp;#39;&amp;#39;; id select_type table type possible_keys key key_len ref rows extra SELECT 查询的标识符 SELECT 查询的类型. 查询的是哪个表 此次查询中可能选用的索引 此次查询中确切使用到的索引. 哪个字段或常数与 key 一起被使用 显示此查询一共扫描了多少行. 这个是一个估计值. 额外的信息 select_type SIMPLE 表示此查询不包含 UNION 查询或子查询 PRIMARY, 表示此查询是最外层的查询 UNION, 表示此查询是 UNION 的第二或随后的查询 UNION RESULT, UNION 的结果 SUBQUERY, 子查询中的第一个 SELECT type 可以根据type 来确定如何查询
+system：表中只有一条数据.'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-12-04T23:57:25&#43;08:00'/><meta property='article:modified_time' content='2022-12-04T23:57:25&#43;08:00'/>
+<meta name="twitter:title" content="Mysql技巧">
+<meta name="twitter:description" content="1、汉字排序 默认编码是utf8mb4，所以其实数据库存储的并不是汉字文本。按照内部的存储方式
+1 select * from table order by convert(filed using gbk) asc; 2、explain explain 用于查看sql执行的执行的情况
+1 EXPLAIN SELECT * FROM table_name WHERE plan_id =&amp;#39;&amp;#39;; id select_type table type possible_keys key key_len ref rows extra SELECT 查询的标识符 SELECT 查询的类型. 查询的是哪个表 此次查询中可能选用的索引 此次查询中确切使用到的索引. 哪个字段或常数与 key 一起被使用 显示此查询一共扫描了多少行. 这个是一个估计值. 额外的信息 select_type SIMPLE 表示此查询不包含 UNION 查询或子查询 PRIMARY, 表示此查询是最外层的查询 UNION, 表示此查询是 UNION 的第二或随后的查询 UNION RESULT, UNION 的结果 SUBQUERY, 子查询中的第一个 SELECT type 可以根据type 来确定如何查询
+system：表中只有一条数据.">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#1汉字排序">1、汉字排序</a></li>
+    <li><a href="#2explain">2、explain</a>
+      <ol>
+        <li><a href="#select_type">select_type</a></li>
+        <li><a href="#type">type</a></li>
+        <li><a href="#extra">extra</a></li>
+      </ol>
+    </li>
+    <li><a href="#count">count</a></li>
+    <li><a href="#查看表锁使用情况">查看表锁使用情况</a></li>
+    <li><a href="#查询sql-操作">查询sql 操作</a></li>
+    <li><a href="#函数">函数</a>
+      <ol>
+        <li><a href="#asciis">ASCII(s)</a></li>
+        <li><a href="#char_lengths">CHAR_LENGTH（s）</a></li>
+        <li><a href="#concats1s2sn">CONCAT(s1,s2,&hellip;,sn)</a></li>
+      </ol>
+    </li>
+    <li><a href="#group-by">group by</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" >
+                数据库
+            </a>
+        
+            <a href="/categories/mysql/" >
+                mysql
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/">Mysql技巧</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 04, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 3 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="1汉字排序">1、汉字排序</h1>
+<p><strong>默认编码是utf8mb4，所以其实数据库存储的并不是汉字文本。按照内部的存储方式</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>select * from table order by convert(filed using gbk) asc;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="2explain">2、explain</h1>
+<p>explain 用于查看sql执行的执行的情况</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>EXPLAIN SELECT * FROM table_name WHERE plan_id =&#39;&#39;;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>select_type</th>
+<th>table</th>
+<th>type</th>
+<th>possible_keys</th>
+<th>key</th>
+<th>key_len</th>
+<th>ref</th>
+<th>rows</th>
+<th>extra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SELECT 查询的标识符</td>
+<td>SELECT 查询的类型.</td>
+<td>查询的是哪个表</td>
+<td></td>
+<td>此次查询中可能选用的索引</td>
+<td>此次查询中确切使用到的索引.</td>
+<td></td>
+<td>哪个字段或常数与 key 一起被使用</td>
+<td>显示此查询一共扫描了多少行. 这个是一个估计值.</td>
+<td>额外的信息</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="select_type">select_type</h2>
+<ul>
+<li>SIMPLE  表示此查询不包含 UNION 查询或子查询</li>
+<li>PRIMARY, 表示此查询是最外层的查询</li>
+<li>UNION, 表示此查询是 UNION 的第二或随后的查询</li>
+<li>UNION RESULT, UNION 的结果</li>
+<li>SUBQUERY, 子查询中的第一个 SELECT</li>
+</ul>
+<h2 id="type">type</h2>
+<p>可以根据type 来确定如何查询</p>
+<ul>
+<li>
+<p>system：表中只有一条数据.</p>
+</li>
+<li>
+<p>const: 针对主键或唯一索引的<strong>等值查询扫描</strong>, 最多只返回<strong>一行</strong>数据</p>
+</li>
+<li>
+<p>eq_ref: 唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>EXPLAIN SELECT * FROM user_info, order_info WHERE user_info.id = order_info.user_id
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>ref:  针对于<strong>非唯一或非主键索引等值查询</strong>, 或者是使用了 <code>最左前缀</code> 规则索引的查询.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>EXPLAIN SELECT * FROM user_info, order_info WHERE user_info.id = order_info.user_id AND order_info.user_id = 5
+</span></span><span style="display:flex;"><span># user_id 是联合索引的第一个索引
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>range： 使用索引范围查询, 通过索引字段范围获取表中部分数据记录. 这个类型通常出现在 =, &lt;&gt;, &gt;, &gt;=, &lt;, &lt;=, IS NULL, &lt;=&gt;, BETWEEN, IN() 操作中.</p>
+</li>
+<li>
+<p>index: 表示全索引扫描(full index scan), index 类型则仅仅扫描所有的索引, 而不扫描数据.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>EXPLAIN SELECT name FROM  user_info;
+</span></span><span style="display:flex;"><span># name 是索引
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>ALL: 表示全表扫描</p>
+</li>
+</ul>
+<p>性能：</p>
+<p>ALL &lt; index &lt; range &lt; ref &lt; eq_ref &lt; const &lt; system</p>
+<h2 id="extra">extra</h2>
+<ul>
+<li>Using filesort: MySQL 需额外的排序操作,查询 CPœU 资源消耗大.</li>
+<li>Using index: 覆盖索引扫描&quot;, 表示查询在索引树中就可查找所需数据</li>
+<li>Using temporary: 查询有使用临时表, 一般出现于排序</li>
+</ul>
+<h1 id="count">count</h1>
+<p>在统计数量的时候，也进行排序。</p>
+<h1 id="查看表锁使用情况">查看表锁使用情况</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span># 1.查看当前数据库运行的所有事务（一般查不到，除非发生死锁）
+</span></span><span style="display:flex;"><span>SELECT * FROM information_schema.INNODB_TRX; 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span># 杀掉查询结果中锁表的trx_mysql_thread_id 
+</span></span><span style="display:flex;"><span>kill trx_mysql_thread_id
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span># 查询是否锁表 
+</span></span><span style="display:flex;"><span>show OPEN TABLES where In_use &gt; 0;  
+</span></span><span style="display:flex;"><span># 查询进程  
+</span></span><span style="display:flex;"><span>show processlist 
+</span></span><span style="display:flex;"><span># 查询到相对应的进程===然后 kill    id 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span> # 查看正在锁的事务 
+</span></span><span style="display:flex;"><span> SELECT * FROM INFORMATION_SCHEMA.INNODB_LOCKS;  
+</span></span><span style="display:flex;"><span> # 查看等待锁的事务 
+</span></span><span style="display:flex;"><span> SELECT * FROM INFORMATION_SCHEMA.INNODB_LOCK_WAITS;
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span> # 查看锁执行情况
+</span></span><span style="display:flex;"><span> show status like &#39;innodb_row_lock_%&#39;;
+</span></span><span style="display:flex;"><span># Innodb_row_lock_current_waits : 当前等待锁的数量
+</span></span><span style="display:flex;"><span># Innodb_row_lock_time : 系统启动到现在，锁定的总时间长度
+</span></span><span style="display:flex;"><span># Innodb_row_lock_time_avg : 每次平均锁定的时间
+</span></span><span style="display:flex;"><span># Innodb_row_lock_time_max : 最长一次锁定时间
+</span></span><span style="display:flex;"><span># Innodb_row_lock_waits : 系统启动到现在总共锁定的次数
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="查询sql-操作">查询sql 操作</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>show status like &#34;com_insert%&#34;; -- 获得mysql的插入次数;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>show status like &#34;com_delete%&#34;; -- 获得mysql的删除次数;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>show status like &#34;com_select%&#34;; -- 获得mysql的查询次数;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>show status like &#34;uptime&#34;; -- 获得mysql服务器运行时间
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>show status like &#39;connections&#39;; -- 获得mysql连接次数
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="函数">函数</h1>
+<h2 id="asciis">ASCII(s)</h2>
+<p>返回字符串中第一个字符的ACSII码</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>select ASCII(&#39;xaioli&#39;);
+</span></span><span style="display:flex;"><span># 结果： 120
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="char_lengths">CHAR_LENGTH（s）</h2>
+<p>返回字符串的长度</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>select CHAR_LENGTH(&#39;xiaoli&#39;);
+</span></span><span style="display:flex;"><span># 结果 6
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="concats1s2sn">CONCAT(s1,s2,&hellip;,sn)</h2>
+<p>将多个字符串合并</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>select CONCAT(&#39;xiaoli&#39;,&#39;xiaohong&#39;);
+</span></span><span style="display:flex;"><span># xiaolixiaohong
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>CONCAT_WS(x,s1,s2,&hellip;,sn)</p>
+<p>通过字符X 将多个字符串合并</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>select CONCAT_WS(&#39;,&#39;,&#39;xiaoli&#39;,&#39;xiaohong&#39;);
+</span></span><span style="display:flex;"><span># xiaoli,xiaohong
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>[<strong>sql函数</strong>]    <a class="link" href="https://www.runoob.com/mysql/mysql-functions.html"  target="_blank" rel="noopener"
+    >https://www.runoob.com/mysql/mysql-functions.html</a> Command + click 跳转</p>
+<p>​</p>
+<h1 id="group-by">group by</h1>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>使用 union all 来代替 or  查询.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SELECT *
+</span></span><span style="display:flex;"><span>        FROM kpi.kpi_plan_info
+</span></span><span style="display:flex;"><span>        WHERE
+</span></span><span style="display:flex;"><span>        &lt;include refid=&#34;select_plan_condition&#34;/&gt;
+</span></span><span style="display:flex;"><span>        &lt;if test=&#34;accountId != null and accountId != &#39;&#39;&#34;&gt;
+</span></span><span style="display:flex;"><span>            and create_acc_id = #{accountId}
+</span></span><span style="display:flex;"><span>        &lt;/if&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        UNION ALL
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        SELECT *
+</span></span><span style="display:flex;"><span>        FROM kpi.kpi_plan_info
+</span></span><span style="display:flex;"><span>        WHERE
+</span></span><span style="display:flex;"><span>        &lt;include refid=&#34;select_plan_condition&#34;/&gt;
+</span></span><span style="display:flex;"><span>        &lt;if test=&#34;accountId != null and accountId != &#39;&#39;&#34;&gt;
+</span></span><span style="display:flex;"><span>            and associates_acc_ids LIKE CONCAT(&#39;%&#39;, #{accountId}, &#39;%&#39;)
+</span></span><span style="display:flex;"><span>        &lt;/if&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>mysql操作查询结果case when then else end</p>
+<p>&ndash;简单Case函数</p>
+<p>CASE column
+WHEN <condition> THEN value
+WHEN <condition> THEN value
+&hellip;&hellip;
+ELSE value END</p>
+<p>例：
+CASE sex
+WHEN &lsquo;1&rsquo; THEN &lsquo;男&rsquo;
+WHEN &lsquo;2&rsquo; THEN &lsquo;女&rsquo;
+ELSE &lsquo;其他&rsquo; END</p>
+<p>&ndash;Case搜索函数
+CASE
+WHEN <condition> [,<condition>] THEN value
+WHEN <condition> [,<condition>] THEN value
+&hellip;&hellip;
+ELSE value END</p>
+<p>例：
+CASE WHEN sex = &lsquo;1&rsquo; THEN &lsquo;男&rsquo;
+WHEN sex = &lsquo;2&rsquo; THEN &lsquo;女&rsquo;
+ELSE &lsquo;其他&rsquo; END</p>
+<p>（1）已知数据按照另外一种方式进行分组，分析。
+SELECT  SUM(population) ,
+CASE country
+WHEN &lsquo;中国&rsquo;     THEN &lsquo;亚洲&rsquo;
+WHEN &lsquo;印度&rsquo;     THEN &lsquo;亚洲&rsquo;
+WHEN &lsquo;日本&rsquo;     THEN &lsquo;亚洲&rsquo;
+WHEN &lsquo;美国&rsquo;     THEN &lsquo;北美洲&rsquo;
+WHEN &lsquo;加拿大&rsquo;  THEN &lsquo;北美洲&rsquo;
+WHEN &lsquo;墨西哥&rsquo;  THEN &lsquo;北美洲&rsquo;
+ELSE &lsquo;其他&rsquo; END<br>
+FROM    country
+GROUP BY CASE country
+WHEN &lsquo;中国&rsquo;     THEN &lsquo;亚洲&rsquo;
+WHEN &lsquo;印度&rsquo;     THEN &lsquo;亚洲&rsquo;
+WHEN &lsquo;日本&rsquo;     THEN &lsquo;亚洲&rsquo;
+WHEN &lsquo;美国&rsquo;     THEN &lsquo;北美洲&rsquo;
+WHEN &lsquo;加拿大&rsquo;  THEN &lsquo;北美洲&rsquo;
+WHEN &lsquo;墨西哥&rsquo;  THEN &lsquo;北美洲&rsquo;
+ELSE &lsquo;其他&rsquo; END;</p>
+<p>(2) 更新
+UPDATE country set population=
+CASE
+WHEN population &gt; 600 THEN
+population-200
+WHEN population&lt;500 THEN
+population+300
+else population END;</p>
+<p>建议加上 else ,否则如果条件都不满足的时候，属性会置为null</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%AD%BB%E9%94%81/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql死锁</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql事务</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql文件</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E8%A1%A8/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql表</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E7%B4%A2%E5%BC%95/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql索引</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

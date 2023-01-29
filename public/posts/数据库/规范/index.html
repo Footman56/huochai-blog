@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='表的字段不要太多，上限20-50
+数据库不做运算
+控制单表数据量 含char 不超过500 w
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 use information_schema; 该库中有一个 TABLES 表，这个表主要字段分别是： TABLE_SCHEMA : 数据库名 TABLE_NAME：表名 ENGINE：所使用的存储引擎 TABLES_ROWS：记录数 DATA_LENGTH：数据大小 INDEX_LENGTH：索引大小 # 查看指定库的大小 select concat(round(sum(DATA_LENGTH/1024/1024),2),&amp;#39;MB&amp;#39;) as data from TABLES where table_schema=&amp;#39;jishi&amp;#39;; # 查看指定库的指定表的大小 select concat(round(sum(DATA_LENGTH/1024/1024),2),&amp;#39;MB&amp;#39;) as data from TABLES where table_schema=&amp;#39;jishi&amp;#39; and table_name=&amp;#39;a_ya&amp;#39;; # 查看指定库的指定表的索引大小 SELECT CONCAT(ROUND(SUM(index_length)/(1024*1024), 2), &amp;#39; MB&amp;#39;) AS &amp;#39;Total Index Size&amp;#39; FROM TABLES WHERE table_schema = &amp;#39;test&amp;#39; and table_name=&amp;#39;a_yuser&amp;#39;; 拒绝3B'>
+<title>规范</title>
+
+<link rel='canonical' href='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/%E8%A7%84%E8%8C%83/'>
+
+<link rel="stylesheet" href="/scss/style.min.2517f7d7bfd50bbc72c876f34259af759726b733a96dd2b273f382a753526d7c.css"><script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+    
+    $(window).scroll(function() {
+    if ($(this).scrollTop()) {
+        $('#back-to-top').fadeIn();
+    } else {
+        $('#back-to-top').fadeOut();
+    }
+    });
+
+    
+    $('#back-to-top').click(function() {
+    $('html, body').animate({scrollTop: 0}, 1000);
+    return false;
+    });
+</script>
+<meta property='og:title' content='规范'>
+<meta property='og:description' content='表的字段不要太多，上限20-50
+数据库不做运算
+控制单表数据量 含char 不超过500 w
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 use information_schema; 该库中有一个 TABLES 表，这个表主要字段分别是： TABLE_SCHEMA : 数据库名 TABLE_NAME：表名 ENGINE：所使用的存储引擎 TABLES_ROWS：记录数 DATA_LENGTH：数据大小 INDEX_LENGTH：索引大小 # 查看指定库的大小 select concat(round(sum(DATA_LENGTH/1024/1024),2),&amp;#39;MB&amp;#39;) as data from TABLES where table_schema=&amp;#39;jishi&amp;#39;; # 查看指定库的指定表的大小 select concat(round(sum(DATA_LENGTH/1024/1024),2),&amp;#39;MB&amp;#39;) as data from TABLES where table_schema=&amp;#39;jishi&amp;#39; and table_name=&amp;#39;a_ya&amp;#39;; # 查看指定库的指定表的索引大小 SELECT CONCAT(ROUND(SUM(index_length)/(1024*1024), 2), &amp;#39; MB&amp;#39;) AS &amp;#39;Total Index Size&amp;#39; FROM TABLES WHERE table_schema = &amp;#39;test&amp;#39; and table_name=&amp;#39;a_yuser&amp;#39;; 拒绝3B'>
+<meta property='og:url' content='https://blog.huochai.xyz/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/%E8%A7%84%E8%8C%83/'>
+<meta property='og:site_name' content='火柴的博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Posts' /><meta property='article:published_time' content='2022-12-04T23:46:15&#43;08:00'/><meta property='article:modified_time' content='2022-12-04T23:46:15&#43;08:00'/>
+<meta name="twitter:title" content="规范">
+<meta name="twitter:description" content="表的字段不要太多，上限20-50
+数据库不做运算
+控制单表数据量 含char 不超过500 w
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 use information_schema; 该库中有一个 TABLES 表，这个表主要字段分别是： TABLE_SCHEMA : 数据库名 TABLE_NAME：表名 ENGINE：所使用的存储引擎 TABLES_ROWS：记录数 DATA_LENGTH：数据大小 INDEX_LENGTH：索引大小 # 查看指定库的大小 select concat(round(sum(DATA_LENGTH/1024/1024),2),&amp;#39;MB&amp;#39;) as data from TABLES where table_schema=&amp;#39;jishi&amp;#39;; # 查看指定库的指定表的大小 select concat(round(sum(DATA_LENGTH/1024/1024),2),&amp;#39;MB&amp;#39;) as data from TABLES where table_schema=&amp;#39;jishi&amp;#39; and table_name=&amp;#39;a_ya&amp;#39;; # 查看指定库的指定表的索引大小 SELECT CONCAT(ROUND(SUM(index_length)/(1024*1024), 2), &amp;#39; MB&amp;#39;) AS &amp;#39;Total Index Size&amp;#39; FROM TABLES WHERE table_schema = &amp;#39;test&amp;#39; and table_name=&amp;#39;a_yuser&amp;#39;; 拒绝3B">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/life_hu673438c3d134e59c3f77e8de59079ce5_968006_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">火柴的博客</a></h1>
+            <h2 class="site-description">敲代码的，热爱旅游、骑行的普通人</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        class="mail" href="mailto:17633150922@163.com" 
+                        title="Email"
+                        target="_blank"
+                    >
+                        <i class="icon-mail"></i>
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        class="github" href="https://github.com/Footman56" 
+                        title="GitHub"
+                        target="_blank"
+                    >
+                        <i class="icon-github"></i>
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>历史记录</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    
+
+    
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" >
+                数据库
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/%E8%A7%84%E8%8C%83/">规范</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Dec 04, 2022</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 1 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <ol>
+<li>
+<p>表的字段不要太多，上限20-50</p>
+</li>
+<li>
+<p>数据库不做运算</p>
+</li>
+<li>
+<p>控制单表数据量 含char 不超过500 w</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>use information_schema;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">该库中有一个</span> TABLES <span style="color:#960050;background-color:#1e0010">表，这个表主要字段分别是：</span>
+</span></span><span style="display:flex;"><span>TABLE_SCHEMA : <span style="color:#960050;background-color:#1e0010">数据库名</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">TABLE_NAME</span><span style="color:#960050;background-color:#1e0010">：表名</span>
+</span></span><span style="display:flex;"><span>ENGINE<span style="color:#960050;background-color:#1e0010">：所使用的存储引擎</span>
+</span></span><span style="display:flex;"><span>TABLES_ROWS<span style="color:#960050;background-color:#1e0010">：记录数</span>
+</span></span><span style="display:flex;"><span>DATA_LENGTH<span style="color:#960050;background-color:#1e0010">：数据大小</span>
+</span></span><span style="display:flex;"><span>INDEX_LENGTH<span style="color:#960050;background-color:#1e0010">：索引大小</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看指定库的大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">select</span> concat(round(<span style="color:#66d9ef">sum</span>(DATA_LENGTH<span style="color:#f92672">/</span><span style="color:#ae81ff">1024</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1024</span>),<span style="color:#ae81ff">2</span>),<span style="color:#e6db74">&#39;MB&#39;</span>) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">data</span>  <span style="color:#66d9ef">from</span> TABLES <span style="color:#66d9ef">where</span> table_schema<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;jishi&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看指定库的指定表的大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">select</span> concat(round(<span style="color:#66d9ef">sum</span>(DATA_LENGTH<span style="color:#f92672">/</span><span style="color:#ae81ff">1024</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1024</span>),<span style="color:#ae81ff">2</span>),<span style="color:#e6db74">&#39;MB&#39;</span>) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">data</span>  <span style="color:#66d9ef">from</span> TABLES <span style="color:#66d9ef">where</span> table_schema<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;jishi&#39;</span> <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">table_name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#39;a_ya&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">查看指定库的指定表的索引大小</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> CONCAT(ROUND(<span style="color:#66d9ef">SUM</span>(index_length)<span style="color:#f92672">/</span>(<span style="color:#ae81ff">1024</span><span style="color:#f92672">*</span><span style="color:#ae81ff">1024</span>), <span style="color:#ae81ff">2</span>), <span style="color:#e6db74">&#39; MB&#39;</span>) <span style="color:#66d9ef">AS</span> <span style="color:#e6db74">&#39;Total Index Size&#39;</span> <span style="color:#66d9ef">FROM</span> TABLES  <span style="color:#66d9ef">WHERE</span> table_schema <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;test&#39;</span> <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">table_name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#39;a_yuser&#39;</span>; 
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>拒绝3B</p>
+<ul>
+<li>大sql</li>
+<li>大事务</li>
+<li>大批量</li>
+</ul>
+</li>
+<li>
+<p>用好数据类型：确定好数据的最大范围，之后定义数据的位数。</p>
+<p>有的只是标志位的话，就可以使用tinyint(1) 来表示</p>
+</li>
+<li>
+<p>可以用无符号int 来存储ip</p>
+</li>
+<li>
+<p>避免使用null 字段， 数据库表中的列最好设置初始值，或者设置成NOT NULL</p>
+</li>
+<li>
+<p>少用text 字段，效率很慢，强制生成临时表，消耗空间。varchar(65535) &gt; 64k</p>
+<p><strong>使用时可以拆分成独立的表</strong></p>
+</li>
+<li>
+<p>尽量不使用外键</p>
+</li>
+<li>
+<p>字符字段必须建立前缀索引</p>
+</li>
+<li>
+<p>忌用字符串做主键</p>
+</li>
+<li>
+<p>使用自增字段作为主键</p>
+</li>
+<li>
+<p>多sql ,而不是大sql</p>
+</li>
+<li>
+<p>事务/连接原则：即开即用，用完即关；多个短事务代替长事务</p>
+</li>
+<li>
+<p>尽量不要使用 select * .会查询所有列，之后丢弃不需要的列</p>
+</li>
+<li>
+<p>使用union 来代替or</p>
+</li>
+<li>
+<p>避免负向查询【NOT LIke】，前缀模糊查询 【%，这个尽量放在查询参数的后半段】：</p>
+</li>
+<li>
+<p>count(*) 开销巨大，能不用就不用</p>
+</li>
+<li>
+<p>union all 来代替 union ， union 有去重,如果不关心有重复的字段时可以使用union all</p>
+</li>
+<li>
+<p>不建议进行两个表以上的join</p>
+</li>
+<li>
+<p>Group by NULL无需排序，性能会好一点</p>
+</li>
+<li>
+<p>统一使用字符集UTF8 ,校对规则： utf8_general_ci</p>
+</li>
+<li>
+<p>索引名称默认 idx_</p>
+</li>
+</ol>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+
+
+ 
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%AD%BB%E9%94%81/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql死锁</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%8A%80%E5%B7%A7/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql技巧</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E4%BA%8B%E5%8A%A1/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql事务</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E6%96%87%E4%BB%B6/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql文件</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/posts/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql-%E5%9F%BA%E7%A1%80/mysql%E8%A1%A8/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Mysql表</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <script src='//unpkg.com/@waline/client@v2/dist/waline.js'></script>
+<link href='//unpkg.com/@waline/client@v2/dist/waline.css' rel='stylesheet'/>
+<div id="waline" class="waline-container"></div>
+<style>
+    .waline-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+        --waline-font-size: var(--article-font-size);
+    }
+    .waline-container .wl-count {
+        color: var(--card-text-color-main);
+    }
+</style><script>
+    
+    Waline.init({"comment":true,"dark":"auto","el":"#waline","emoji":["https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo"],"lang":"zh-CN","locale":{"admin":"Kerm","placeholder":null},"pageview":true,"reaction":true,"requiredMeta":["name","email","url"],"search":true,"serverURL":"https://waline.huochai.xyz"});
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2023 火柴的博客
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+
+    <br /> 本站访客数 <span id="busuanzi_value_site_uv"></span> 人次
+    &nbsp;
+    <span id="busuanzi_container_site_pv"> 总访问量 <span id="busuanzi_value_site_pv"></span> 次 </span>
+    &nbsp;
+    <span id="busuanzi_container_page_pv"> 本文阅读量 <span id="busuanzi_value_page_pv"></span> 次 </span>
+</footer>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/ribbon.min.js"
+    integrity="sha384-UEK8ZiP3VgFNP8KnKMKDmd4pAUAOJ59Y2Jo3ED2Z5qKQf6HLHovMxq7Beb9CLPUe"
+    crossorigin="anonymous"
+    size="300"
+    alpha="0.6"
+    zindex="-1"
+    defer
+></script>
+
+
+
+<script
+    src="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/js/nprogress.min.js"
+    integrity="sha384-bHDlAEUFxsRI7JfULv3DTpL2IXbbgn4JHQJibgo5iiXSK6Iu8muwqHANhun74Cqg"
+    crossorigin="anonymous"
+></script>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/zhixuan2333/gh-blog@v0.1.0/css/nprogress.css"
+    integrity="sha384-KJyhr2syt5+4M9Pz5dipCvTrtvOmLk/olWVdfhAp858UCa64Ia5GFpTN7+G4BWpE"
+    crossorigin="anonymous"
+/>
+<script>
+    NProgress.start();
+    document.addEventListener("readystatechange", () => {
+        if (document.readyState === "interactive") NProgress.inc(0.8);
+        if (document.readyState === "complete") NProgress.done();
+    });
+</script>
+
+    </body>
+</html>

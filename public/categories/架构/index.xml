@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>架构 on 火柴的博客</title>
+        <link>https://blog.huochai.xyz/categories/%E6%9E%B6%E6%9E%84/</link>
+        <description>Recent content in 架构 on 火柴的博客</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en-us</language>
+        <lastBuildDate>Thu, 08 Dec 2022 10:18:15 +0800</lastBuildDate><atom:link href="https://blog.huochai.xyz/categories/%E6%9E%B6%E6%9E%84/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>设计思路</title>
+        <link>https://blog.huochai.xyz/posts/%E6%9E%B6%E6%9E%84/%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/</link>
+        <pubDate>Thu, 08 Dec 2022 10:18:15 +0800</pubDate>
+        
+        <guid>https://blog.huochai.xyz/posts/%E6%9E%B6%E6%9E%84/%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/</guid>
+        <description>&lt;h1 id=&#34;核心思想&#34;&gt;核心思想&lt;/h1&gt;
+&lt;p&gt;要想项目能够优雅的运行，需要从解决大数据量、大并发两个角度去解决这个问题&lt;/p&gt;
+&lt;h2 id=&#34;解决大数据量&#34;&gt;解决大数据量&lt;/h2&gt;
+&lt;p&gt;因为海量的数据导致增删改查操作变慢，导致客户体验变差（IO问题）&lt;/p&gt;
+&lt;h2 id=&#34;解决大并发&#34;&gt;解决大并发&lt;/h2&gt;
+&lt;p&gt;因为大量请求过来导致CPU 处理不过来，没有及时响应，导致客户体验变差（内存问题）&lt;/p&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>

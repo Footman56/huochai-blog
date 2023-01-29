@@ -1,0 +1,919 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>微服务 on 火柴的博客</title>
+        <link>https://blog.huochai.xyz/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/</link>
+        <description>Recent content in 微服务 on 火柴的博客</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en-us</language>
+        <lastBuildDate>Sun, 29 Jan 2023 10:47:25 +0800</lastBuildDate><atom:link href="https://blog.huochai.xyz/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>日志</title>
+        <link>https://blog.huochai.xyz/posts/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E6%97%A5%E5%BF%97/</link>
+        <pubDate>Sun, 29 Jan 2023 10:47:25 +0800</pubDate>
+        
+        <guid>https://blog.huochai.xyz/posts/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E6%97%A5%E5%BF%97/</guid>
+        <description>&lt;p&gt;使用log4j2 打印日志，对一些敏感数据进行脱敏。【通过配置选择哪个日志生效】&lt;/p&gt;
+&lt;h1 id=&#34;一常见日志框架&#34;&gt;一、常见日志框架&lt;/h1&gt;
+&lt;p&gt;日志框架采用外观模式来实现，给系统提供门面，不暴露具体实现细节。&lt;/p&gt;
+&lt;h2 id=&#34;1外观模式&#34;&gt;1、外观模式&lt;/h2&gt;
+&lt;p&gt;使用者只需和外观角色打交道就行&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202301291049535.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;外观模式&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;h2 id=&#34;2门面&#34;&gt;2、门面&lt;/h2&gt;
+&lt;h3 id=&#34;21-slf4j&#34;&gt;2.1 slf4j&lt;/h3&gt;
+&lt;p&gt;SLF4J是一款Java程序编写的日志门面&lt;a class=&#34;link&#34; href=&#34;https://so.csdn.net/so/search?q=%e6%a1%86%e6%9e%b6&amp;amp;spm=1001.2101.3001.7020&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;框架&lt;/a&gt;，其本身定义了统一的日志接口，且对不同的日志实现框架进行抽象化，我们的应用只需要跟SLF4J进行沟通&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202301291049705.png&#34; alt=&#34;在这里插入图片描述&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;p&gt;在引入包的时候，需要同时引入slf4j.jar，日志实现.jar，以及对应的适配包.jar&lt;/p&gt;
+&lt;p&gt;日志使用中都是引入slf4j包里面的&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; org.slf4j.Logger&lt;span style=&#34;color:#f92672&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; org.slf4j.LoggerFactory&lt;span style=&#34;color:#f92672&#34;&gt;;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; Logger logger &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; LoggerFactory&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;getLogger&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SLF4JandLog4j&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;在执行的时候选择具体的实现系统&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202301291049713.png&#34; alt=&#34;image-20220716174927441&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;p&gt;Slf4j实现机制： Slf4j在编译期间，静态绑定本地的LOG库，因此可以在OSGi中正常使用。它是通过查找类路径下org.slf4j.impl.StaticLoggerBinder，然后绑定工作都在这类里面进。&lt;/p&gt;
+&lt;h3 id=&#34;22-commons-logging&#34;&gt;2.2 Commons Logging&lt;/h3&gt;
+&lt;p&gt;是一个基于Java的日志记录实用程序，是用于日志记录和其他工具包的编程模型。它通过其他一些工具提供API，日志实现和包装器实现。Commons Loggin自动搜索并使用Log4j（Log4j是另一个流行的日志系统），如果没有找到Log4j，再使用JDK Logging。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; org.apache.commons.logging.Log&lt;span style=&#34;color:#f92672&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; org.apache.commons.logging.LogFactory&lt;span style=&#34;color:#f92672&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Main&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;String&lt;span style=&#34;color:#f92672&#34;&gt;[]&lt;/span&gt; args&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Log log &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; LogFactory&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;getLog&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Main&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;info&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;start...&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;warn&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;end.&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;3实现&#34;&gt;3、实现&lt;/h2&gt;
+&lt;h3 id=&#34;log4j&#34;&gt;log4j&lt;/h3&gt;
+&lt;h3 id=&#34;logback&#34;&gt;logback&lt;/h3&gt;
+&lt;p&gt;Springboot 默认会使用logback 来记录日志，引入spring-boot-starter-logging的时候会引入如下包&lt;/p&gt;
+&lt;img src=&#34;https://gcore.jsdelivr.net/gh/Footman56/imageBeds/202301291049721.png&#34; alt=&#34;image-20220716183450856&#34; style=&#34;zoom:50%;&#34; /&gt;
+&lt;h4 id=&#34;pom&#34;&gt;pom&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--比较纯粹的时候logback--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;jul-to-slf4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.slf4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;log4j-to-slf4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.logging.log4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Logback 则支持 XML 与 groovy 两种方式配置方式；&lt;/p&gt;
+&lt;h4 id=&#34;配置&#34;&gt;配置&lt;/h4&gt;
+&lt;p&gt;默认情况下，Spring Boot将日志输出到控制台，不会写到日志文件。可以在&lt;code&gt;application.properties&lt;/code&gt;或&lt;code&gt;application.yml&lt;/code&gt;配置，这样只能配置简单的场景，保存路径、日志格式等。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;logging&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;level&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;#    全局输出级别&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;root&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;info&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;#    指定包输出级别&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;com.huochai.controller&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;error&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;pattern&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;#    输出格式(控制台输出格式)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;console&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%d - %msg%n&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;#    输出格式（文件输出格式）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;file&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%d - %msg%n&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;#    日志输出文件的位置&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;file&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ae81ff&#34;&gt;/Users/peilizhi/javaProects/log/logback.log&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;#    日志输出文件的目录&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;path&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;#    没有指定logging.file 时会默认创建一个spring.log文件用于记录&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ae81ff&#34;&gt;/Users/peilizhi/javaProects/log&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;#  自定义配置文件&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# classpath 与文件地址要写在同一行中才有效&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;config&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;classpath:log/logback-test.xml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;在配置的时候 系统不建议使用file 与 path 参数，可能是想通过自定义配置来指定文件输出位置&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;logging.file&lt;/code&gt;，设置文件，可以是绝对路径，也可以是相对路径。如：&lt;code&gt;logging.file=my.log&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;logging.path&lt;/code&gt;，设置目录，会在该目录下创建&lt;code&gt;spring.log&lt;/code&gt;文件，并写入日志内容。&lt;/li&gt;
+&lt;li&gt;如果同时指定了logging.file 与logging.path 的话，logging.file 会生效，logging.path 不会生效&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;自定义配置&#34;&gt;自定义配置&lt;/h4&gt;
+&lt;p&gt;是xml 形式的配置文件，只需增加固定开头之后，可以直接书写配置&lt;/p&gt;
+&lt;p&gt;固定开头：&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;&lt;/p&gt;
+&lt;h5 id=&#34;configuration&#34;&gt;configuration&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;debug:  默认false&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;​	true :打印logback 内部执行日志&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;scan; 默认值为true&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;true时，配置文件如果发生改变，将会被重新加载&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;scanPeriod ：加载的时间间隔，默认的时间间隔为1分钟。&lt;/p&gt;
+&lt;p&gt;如果开启自动加载的话，有任何改动应该是立即生效的&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;appender-&#34;&gt;appender :&lt;/h5&gt;
+&lt;p&gt;负责写日志的组件，定义了一些输出的格式、文件大小等&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;name : 名称&lt;/li&gt;
+&lt;li&gt;class ： 全类名，常见的有ch.qos.logback.core.ConsoleAppender【控制台输出】、ch.qos.logback.core.rolling.RollingFileAppender[文件输出]。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6 id=&#34;consoleappender&#34;&gt;ConsoleAppender&lt;/h6&gt;
+&lt;p&gt;用于控制台输出&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;encode  ：对输出日志进行格式规范&lt;/li&gt;
+&lt;li&gt;target ： 字符串System.out(默认)或者System.err&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6 id=&#34;fileappender&#34;&gt;FileAppender&lt;/h6&gt;
+&lt;p&gt;负责写日志到文件中&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;file：被写入的文件名，可以是相对目录，也可以是绝对目录，如果上级目录不存在会自动创建，没有默认值。　　&lt;/li&gt;
+&lt;li&gt;append：如果是 true，日志被追加到文件结尾，如果是 false，清空现存文件，默认是true。&lt;/li&gt;
+&lt;li&gt;encoder：对记录事件进行格式化。&lt;/li&gt;
+&lt;li&gt;prudent：如果是 true，日志会被安全的写入文件，即使其他的FileAppender也在向此文件做写入操作，效率低，默认是 false。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6 id=&#34;rollingfileappender&#34;&gt;RollingFileAppender&lt;/h6&gt;
+&lt;p&gt;滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件。可用于每天记录不同的日志到不同的文件中&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;file：被写入的文件名，可以是相对目录，也可以是绝对目录，如果上级目录不存在会自动创建，没有默认值。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;append：如果是 true，日志被追加到文件结尾，如果是 false，清空现存文件，默认是true。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;rollingPolicy :当发生滚动时，决定RollingFileAppender的行为，涉及文件移动和重命名。属性class定义具体的滚动策略类&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;TimeBasedRollingPolicy&lt;/p&gt;
+&lt;p&gt;按照一定的时间执行滚动&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;fileNamePattern ：包含文件名及“%d”转换符，“%d”可以包含一个java.text.SimpleDateFormat指定的时间格式，如：%d{yyyy-MM}。这就是滚动的时间规律，&lt;/li&gt;
+&lt;li&gt;maxHistory：控制保留的归档文件的最大数量，超出数量就删除旧文件。假设设置每个月滚动，且maxHistory是6，则只保存最近6个月的文件，删除之前的旧文件&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;SizeBasedTriggeringPolicy&lt;/p&gt;
+&lt;p&gt;根据文件大小进行滚动&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;maxFileSize:这是活动文件的大小，默认值是10MB。&lt;/li&gt;
+&lt;li&gt;triggeringPolicy : 告知 RollingFileAppender 合适激活滚动。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;logger&#34;&gt;logger&lt;/h5&gt;
+&lt;p&gt;用于控制指定包或者类的打印策略，可以指定level，appender&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;name : 全类名&lt;/li&gt;
+&lt;li&gt;level :日志级别  大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL和OFF，还有一个特殊值INHERITED或者同义词NULL，代表强制执行上级的级别。 如果未设置此属性，那么当前loger将会继承上级的级别。
+&lt;ul&gt;
+&lt;li&gt;append-ref : 指定的输出类，是之前appender 标签中name 字段的引用（可以指定多个）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;addtivity: 是否向上级logger传递打印信息。默认是true。可以包含零个或多个&lt;appender-ref&gt;元素，标识这个appender将会添加到这个logger。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;root&#34;&gt;root&lt;/h5&gt;
+&lt;p&gt;它也是&lt;logger&gt;元素，但是它是根loger,是所有&lt;loger&gt;的上级。只有一个level属性，因为name已经被命名为&amp;quot;root&amp;quot;,且已经是最上级了。&lt;/p&gt;
+&lt;h5 id=&#34;日志格式&#34;&gt;日志格式&lt;/h5&gt;
+&lt;p&gt;%m （%msg）输出代码中指定的消息&lt;/p&gt;
+&lt;p&gt;%p（%level） 输出优先级，即DEBUG，INFO，WARN，ERROR，FATAL&lt;/p&gt;
+&lt;p&gt;%r输出自应用启动到输出该log信息耗费的毫秒数&lt;/p&gt;
+&lt;p&gt;%c输出所属的类目，通常就是所在类的全名&lt;/p&gt;
+&lt;p&gt;%t输出产生该日志事件的线程名&lt;/p&gt;
+&lt;p&gt;%n输出一个回车换行符，Windows平台为“\r\n”，Unix平台为“\n”&lt;/p&gt;
+&lt;p&gt;%d输出日志时间点的日期或时间，默认格式为ISO8601，也可以在其后指定格式，比如：%d{yyy MMM dd HH:mm:ss,SSS}，&lt;/p&gt;
+&lt;p&gt;%l输出日志事件的发生位置，包括类目名、发生的线程，以及在代码中的行数。举例：Testlog4.main(TestLog4.java:10)&lt;/p&gt;
+&lt;p&gt;%thread 线程名&lt;/p&gt;
+&lt;p&gt;logback的配置，需要配置输出源appender，打日志的logger（子节点）和root（根节点），实际上，它输出日志是从子节点开始，子节点如果有输出源直接输入，如果无，判断配置的addtivity，是否向上级传递，即是否向root传递，传递则采用root的输出源，否则不输出日志。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;  9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 38
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 39
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 40
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 41
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 42
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 43
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 44
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 45
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 46
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 47
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 48
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 49
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 50
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 51
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 52
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 53
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 54
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 55
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 56
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 57
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 58
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 59
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 60
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 61
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 62
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 63
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 64
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 65
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 66
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 67
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 68
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 69
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 70
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 71
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 72
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 73
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 74
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 75
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 76
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 77
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 78
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 79
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 80
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 81
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 82
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 83
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 84
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 85
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 86
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 87
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 88
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 89
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 90
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 91
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 92
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 93
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 94
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 95
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 96
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 97
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 98
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 99
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;100
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;101
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;102
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;103
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;104
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;105
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;106
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;107
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;?xml version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;UTF-8&amp;#34;?&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--打印logback内部执行日志--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;configuration&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;debug=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;scan=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;scanPeriod=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;60 seconds&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--定义一些常用的参数--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;property&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;LOG_PATH&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;value=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/Users/peilizhi/javaProects/log&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--控制台日志， 控制台输出 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;STDOUT&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.core.ConsoleAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--        class=&amp;#34;ch.qos.logback.classic.encoder.PatternLayoutEncoder&amp;#34;--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;encoder&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度,%msg：日志消息，%n是换行符--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;pattern&amp;gt;&lt;/span&gt;%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/pattern&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;charset&amp;gt;&lt;/span&gt;UTF-8&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/charset&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/encoder&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/appender&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--文件日志， 按照每天生成日志文件 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;FILE&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.core.rolling.RollingFileAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--当天正在使用的日志--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;file&amp;gt;&lt;/span&gt;${LOG_PATH}/logback.log&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/file&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--基于文件大小和时间的滚动策略--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;rollingPolicy&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--日志文件输出的文件名【历史记录】--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;FileNamePattern&amp;gt;&lt;/span&gt;${LOG_PATH}/logback-%d{yyyy-MM-dd}-%i.log&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/FileNamePattern&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--日志文件保留天数--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;MaxHistory&amp;gt;&lt;/span&gt;60&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/MaxHistory&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--日志文件最大的大小--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;MaxFileSize&amp;gt;&lt;/span&gt;10MB&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/MaxFileSize&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/rollingPolicy&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;encoder&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.classic.encoder.PatternLayoutEncoder&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;pattern&amp;gt;&lt;/span&gt;%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/pattern&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;charset&amp;gt;&lt;/span&gt;UTF-8&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/charset&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/encoder&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 日志过滤 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;filter&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.classic.filter.LevelFilter&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 指定日志级别 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;level&amp;gt;&lt;/span&gt;ERROR&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/level&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 匹配则全部接受 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;onMatch&amp;gt;&lt;/span&gt;ACCEPT&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/onMatch&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 不匹配则全部拒绝 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;onMismatch&amp;gt;&lt;/span&gt;DENY&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/onMismatch&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/filter&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/appender&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 输出ERROR日志 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ERROR_LOG_FILE&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.core.rolling.RollingFileAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;file&amp;gt;&lt;/span&gt;${LOG_PATH}/logback-error.log&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/file&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 基于文件大小和时间的滚动策略 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;rollingPolicy&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;fileNamePattern&amp;gt;&lt;/span&gt;${LOG_PATH}/logback-error-%d{yyyy-MM-dd}-%i.log&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/fileNamePattern&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 日志文件保留天数 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;maxHistory&amp;gt;&lt;/span&gt;60&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/maxHistory&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 单个日志文件大小 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;maxFileSize&amp;gt;&lt;/span&gt;10MB&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/maxFileSize&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/rollingPolicy&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 日志输出格式 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;encoder&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;pattern&amp;gt;&lt;/span&gt;[%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36}: %msg%n&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/pattern&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;charset&amp;gt;&lt;/span&gt;UTF-8&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/charset&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/encoder&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 日志过滤 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;filter&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.classic.filter.LevelFilter&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 指定日志级别 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;level&amp;gt;&lt;/span&gt;ERROR&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/level&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 匹配则全部接受 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;onMatch&amp;gt;&lt;/span&gt;ACCEPT&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/onMatch&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 不匹配则全部拒绝 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;onMismatch&amp;gt;&lt;/span&gt;DENY&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/onMismatch&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/filter&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/appender&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ASYNC_FILE&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.classic.AsyncAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;discardingThreshold&amp;gt;&lt;/span&gt;0&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/discardingThreshold&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 更改默认的队列的深度,该值会影响性能.默认值为256 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;queueSize&amp;gt;&lt;/span&gt;512&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/queueSize&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 添加附加的appender,最多只能添加一个 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender-ref&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;FILE&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/appender&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- show parameters for hibernate sql 专为 Hibernate 定制 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;org.hibernate.type.descriptor.sql.BasicBinder&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;TRACE&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;org.hibernate.type.descriptor.sql.BasicExtractor&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;org.hibernate.SQL&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;org.hibernate.engine.QueryParameters&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;org.hibernate.engine.query.HQLQueryPlan&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--myibatis log configure--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;com.apache.ibatis&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;TRACE&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;java.sql.Connection&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;java.sql.Statement&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;logger&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;java.sql.PreparedStatement&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 日志输出级别 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;root&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender-ref&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;STDOUT&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender-ref&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ASYNC_FILE&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender-ref&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ERROR_LOG_FILE&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/root&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h4 id=&#34;异步输出&#34;&gt;异步输出&lt;/h4&gt;
+&lt;p&gt;AsyncAppender，异步记录日志。&lt;/p&gt;
+&lt;p&gt;AsyncAppender并不处理日志，只是将日志缓冲到一个BlockingQueue里面去，并在内部创建一个工作线程从队列头部获取日志，之后将获取的日志循环记录到附加的其他appender上去，从而达到不阻塞主线程的效果。因此AsynAppender仅仅充当事件转发器，必须引用另一个appender来做事。&lt;/p&gt;
+&lt;p&gt;由于使用了BlockingQueue来缓存日志，因此就会出现队列满的情况。正如上面原理中所说的，在这种情况下，AsyncAppender会做出一些处理：默认情况下，如果队列80%已满，AsyncAppender将丢弃TRACE、DEBUG和INFO级别的event&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;FILE&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.core.rolling.RollingFileAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 按天来回滚，如果需要按小时来回滚，则设置为{yyyy-MM-dd_HH} --&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;rollingPolicy&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;fileNamePattern&amp;gt;&lt;/span&gt;/opt/log/test.%d{yyyy-MM-dd}.log&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/fileNamePattern&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 如果按天来回滚，则最大保存时间为1天，1天之前的都将被清理掉 --&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;maxHistory&amp;gt;&lt;/span&gt;30&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/maxHistory&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 日志输出格式 --&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;layout&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.classic.PatternLayout&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                 &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Pattern&amp;gt;&lt;/span&gt;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%msg%n&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Pattern&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/layout&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/appender&amp;gt;&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 异步输出 --&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name =&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ASYNC&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ch.qos.logback.classic.AsyncAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 --&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;discardingThreshold&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;0&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/discardingThreshold&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 更改默认的队列的深度,该值会影响性能.默认值为256 --&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;queueSize&amp;gt;&lt;/span&gt;512&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/queueSize&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 添加附加的appender,最多只能添加一个 --&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender-ref&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref =&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;FILE&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/appender&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;root&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level =&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;trace&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;appender-ref&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref =&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ASYNC&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;     &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/root&amp;gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;log4j2&#34;&gt;log4j2&lt;/h3&gt;
+&lt;h4 id=&#34;pom-1&#34;&gt;pom&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 排除默认的logback日志--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-logging&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 引入log4j2配置--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-log4j2&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${spring-log4j2.version}&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 引入异步log4j2--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;com.lmax&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;disruptor&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${disruptor}&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h4 id=&#34;配置-1&#34;&gt;配置&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;logging&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;config&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;classpath:log/log4j2-test.xml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h4 id=&#34;自定义配置-1&#34;&gt;自定义配置&lt;/h4&gt;
+&lt;p&gt;其中log4j2支持多个格式自定义配置：log4j2.properties  &lt;code&gt;log4j2.yaml&lt;/code&gt; &lt;code&gt;log4j2.json&lt;/code&gt;  `log4j2.xml&lt;/p&gt;
+&lt;p&gt;加载的优先级为 &lt;code&gt;properties&lt;/code&gt; &amp;gt; &lt;code&gt;yaml&lt;/code&gt; &amp;gt; &lt;code&gt;json&lt;/code&gt; &amp;gt; &lt;code&gt;xml&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;配置文件的节点与logback文件节点大致一样&lt;/p&gt;
+&lt;h5 id=&#34;configuration-1&#34;&gt;configuration&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;status :这个属性表示log4j2本身的日志信息打印级别。如果把status改为TRACE再执行测试代码，可以看到控制台中打印了一些log4j加载插件、组装logger等调试信息。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;​		日志级别以及优先级排序: OFF &amp;gt; FATAL &amp;gt; ERROR &amp;gt; WARN &amp;gt; INFO &amp;gt; DEBUG &amp;gt; TRACE &amp;gt; ALL&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;monitorInterval: Log4j2 能够自动检测修改配置 文件和重新配置本身，设置间隔秒数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id=&#34;appender&#34;&gt;appender&lt;/h5&gt;
+&lt;p&gt;有RollingFile、Console、RollingRandomAccessFile。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;RollingRandomAccessFileAppender&lt;/code&gt; 与 &lt;code&gt;RollingFileAppender&lt;/code&gt; 在功能上基本一致，但是底层的实现有所区别，RollingFileAppender 底层是 &lt;code&gt;BufferedOutputStream&lt;/code&gt;，RollingRandomAccessFileAppender 底层是使用 &lt;code&gt;ByteBuffer&lt;/code&gt; + &lt;code&gt;RandomAccessFile&lt;/code&gt; ，性能上有了很大的提升。&lt;/p&gt;
+&lt;h6 id=&#34;rollingrandomaccessfileappender&#34;&gt;RollingRandomAccessFileAppender&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;fileName  指定当前日志文件的位置和文件名称&lt;/li&gt;
+&lt;li&gt;filePattern  指定当发生Rolling时，文件的转移和重命名规则&lt;/li&gt;
+&lt;li&gt;SizeBasedTriggeringPolicy  指定当文件体积大于size指定的值时，触发Rolling&lt;/li&gt;
+&lt;li&gt;DefaultRolloverStrategy  指定最多保存的文件个数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;TimeBasedTriggeringPolicy  这个配置需要和filePattern结合使用，注意filePattern中配置的文件重命名规则是${log_path}/zcrTest%d{yyyy-MM-dd}.log，最小的时间粒度是dd，即分钟，TimeBasedTriggeringPolicy指定的size是1，结合起来就是每一天生成一个新文件。如果改成%d{yyyy-MM-dd HH}，最小粒度为小时，则每一个小时生成一个文件。&lt;/p&gt;
+&lt;h5 id=&#34;filers&#34;&gt;filers&lt;/h5&gt;
+&lt;p&gt;Log4j2 中的过滤日志的配置，可以排除一些不需要的配置 。根据范围分为：&lt;/p&gt;
+&lt;p&gt;Context-wide（全局配置），Logger ，Appender ，Appender Reference&lt;/p&gt;
+&lt;p&gt;配置文件中节点的顺序， 全局Filter节点&lt;code&gt;&amp;lt;Filters&amp;gt;&lt;/code&gt; 必须放在&lt;code&gt;&amp;lt;properties&amp;gt;&lt;/code&gt;节点之后。 否则会出现意料不到的问题。例如本人碰到的就是 &lt;code&gt;&amp;lt;PatternLayout pattern=&amp;quot;${pattern_debug_info_warn}&amp;quot; /&amp;gt;&lt;/code&gt; 替换失败。&lt;/p&gt;
+&lt;p&gt;经常使用的filter&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;CompositeFilter ： 组合模式，用以向外界提供统一的访问接口。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;ThresholdFilter ： 这个Filter负责按照所配置的日志级别过滤Log Event，等于或超出所配置级别的log Event将返回onMatch结果。（threshold ： 阈值, 临界值; 门槛，入口）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;LevelRangeFilter ： 这个Filter也是负责按照日志级别过滤Log，只是相比较于ThresholdFilter，它比较的是指定区间范围。这里有一个需要密切注意就是其两个参数minLevel，maxLevel的配置；其和我们的思维惯式有着些许的差异，可能会造成困扰。细节之处可以查看StandardLevel中各个日志级别的底层数值，以及Level.isInRange的比较逻辑。概括而言就是 底层支撑的数值越小，日志危险级别越高。也就是我们如果想要只保留WARN到ERROR级别的日志，那么应该如下配置：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;```xml
+&amp;lt;LevelRangeFilter minLevel=&amp;quot;ERROR&amp;quot; maxLevel=&amp;quot;WARN&amp;quot;
+        onMatch=&amp;quot;ACCEPT&amp;quot;&amp;gt;
+    &amp;lt;/LevelRangeFilter&amp;gt;
+```
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;DynamicThresholdFilter ：这个Filter允许依据ThreadContext中是否存在特定的某些值，以及日志级别来过滤LOG。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;策略&lt;/p&gt;
+&lt;p&gt;ACCEPT(接受)&lt;code&gt;，&lt;/code&gt;DENY(拒绝)&lt;code&gt;，&lt;/code&gt;NEUTRAL(中立)&lt;/p&gt;
+&lt;p&gt;中立适合就是当前过滤器暂时不处理，交给后面的过滤器处理&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Filters&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--如果是error级别拒绝，设置 onMismatch=&amp;#34;NEUTRAL&amp;#34; 可以让日志经过后续的过滤器--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;ThresholdFilter&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;error&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;onMatch=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DENY&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;onMismatch=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;NEUTRAL&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--如果是debug\info\warn级别的日志输出--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;ThresholdFilter&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;debug&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;onMatch=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ACCEPT&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;onMismatch=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DENY&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Filters&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h5 id=&#34;完整配置&#34;&gt;完整配置&lt;/h5&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;54
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;55
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;56
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;57
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Configuration&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;status=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;info&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Properties&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;property&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;LOG_PATH&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;value=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/Users/peilizhi/javaProects/log&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Properties&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Filters&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- 全局级别Filter,放在property之后 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;LevelRangeFilter&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;minLevel=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ERROR&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;maxLevel=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DEBUG&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;onMatch=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ACCEPT&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Filters&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Appenders&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Console&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Console&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;target=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;SYSTEM_OUT&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;PatternLayout&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;pattern=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Console&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;RollingRandomAccessFile&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fileAppender&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                 &lt;span style=&#34;color:#a6e22e&#34;&gt;fileName=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;${LOG_PATH}/log4j2.log&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                 &lt;span style=&#34;color:#a6e22e&#34;&gt;filePattern=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;${LOG_PATH}/log4j2-%d{yyyyMMddHH}-%i.log&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                 &lt;span style=&#34;color:#a6e22e&#34;&gt;append=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;immediateFlush=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;false&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;PatternLayout&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#a6e22e&#34;&gt;pattern=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Policies&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;TimeBasedTriggeringPolicy/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;SizeBasedTriggeringPolicy&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;size=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;250 MB&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Policies&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/RollingRandomAccessFile&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;RollingRandomAccessFile&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;errorAppender&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                 &lt;span style=&#34;color:#a6e22e&#34;&gt;fileName=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;${LOG_PATH}/log4j2-error.log&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                 &lt;span style=&#34;color:#a6e22e&#34;&gt;filePattern=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;${LOG_PATH}/log4j2-error-%d{yyyyMMddHH}-%i.log&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                 &lt;span style=&#34;color:#a6e22e&#34;&gt;append=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;immediateFlush=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;false&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;PatternLayout&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#a6e22e&#34;&gt;pattern=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Policies&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;TimeBasedTriggeringPolicy/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;SizeBasedTriggeringPolicy&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;size=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;250 MB&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Policies&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!--appender 级别filer--&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Filters&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;ThresholdFilter&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ERROR&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;onMatch=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ACCEPT&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;onMismatch=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DENY&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Filters&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/RollingRandomAccessFile&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Appenders&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;Loggers&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;AsyncRoot&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;level=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;info&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;includeLocation=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;AppenderRef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Console&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;AppenderRef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fileAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;AppenderRef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ref=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;errorAppender&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/AsyncRoot&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Loggers&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/Configuration&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h5 id=&#34;日志格式-1&#34;&gt;日志格式&lt;/h5&gt;
+&lt;p&gt;&lt;code&gt;%d&lt;/code&gt; 表示时间，默认情况下表示打印完整时间戳 &lt;code&gt;2012-11-02 14:34:02,123&lt;/code&gt;，可以调整 &lt;code&gt;%d&lt;/code&gt; 后面的参数来调整输出的时间格式&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;%p&lt;/code&gt; 表示输出日志的等级，可以使用 &lt;code&gt;%highlight{%p}&lt;/code&gt; 来高亮显示日志级别&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;%c&lt;/code&gt; 用来输出类名，默认输出的是完整的包名和类名，&lt;code&gt;%c{1.}&lt;/code&gt; 输出包名的首字母和完整类名&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;%t&lt;/code&gt; 表示线程名称&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;%m&lt;/code&gt; 表示日志内容，&lt;code&gt;%M&lt;/code&gt; 表示方法名称&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;%n&lt;/code&gt; 表示换行符&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;%L&lt;/code&gt; 表示打印日志的代码行数&lt;/p&gt;
+&lt;h2 id=&#34;4对比&#34;&gt;4、对比&lt;/h2&gt;
+&lt;p&gt;老牌的 Log4j2 凭借着入场早、背靠 &lt;a class=&#34;link&#34; href=&#34;https://so.csdn.net/so/search?q=Apache&amp;amp;spm=1001.2101.3001.7020&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;Apache&lt;/a&gt; 两大优势有着不错的用户支持，官网文档也很完善。&lt;/p&gt;
+&lt;p&gt;新生的 Logback 凭借着 SLF4j 的原生实现以及被 Spring Boot 钦点的日志框架(Spring 也提供了Log4j2 的 starter，切换依赖即可完成更换日志框架，前文讲过，此处不再赘述)，同样也拥有着很好的前景。&lt;/p&gt;
+&lt;p&gt;社区支持方面，Log4j2 作为 Apache 顶级项目，支持度应该是很不错的，Logback 作为Ceki创业后的产物，也能有很好的保证，二者生态可谓不相上下。&lt;/p&gt;
+&lt;p&gt;日志的功能我们从使用者的角度可以分为：配置、使用、以及独有特性。配置文件方面，&lt;a class=&#34;link&#34; href=&#34;https://so.csdn.net/so/search?q=Log4j&amp;amp;spm=1001.2101.3001.7020&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;Log4j&lt;/a&gt; 提供了更多的配置文件配置方式，Log4j2 支持 properties、YAML、JSON、XML四种，Logback 则支持 XML 与 groovy 两种方式；&lt;/p&gt;
+&lt;p&gt;Appender 方面，两者均支持自定义扩展 Appender ，Log4j2 并且提供了几乎全部场景的 Appender，文件、控制台、JDBC、NoSql、MQ、Syslog、Socket、SMTP等，Logback提供 Appender 略少于 Log4j2，提供了文件、控制台、数据库、Syslog、Socket、SMTP等，动态化输出方面，Log4j2 提供了ScriptAppenderSelector，Logback 则提供了 Evaluator 与 SiftingAppender(两者均可以用于判断并选择对应的 Appender)；&lt;/p&gt;
+&lt;p&gt;独有特性方面，Logback 支持 Receivers， 可以接收其他 Logback 的 Socket Appender 输出，Logbak 还拥有 logback-access 模块，可以用来与 Servlet容器(如 Tomcat 和 Jetty)集成，提供 http 访问日志功能；Log4j2 则拥有号称能够减少 JVM 垃圾回收停顿时间的 Garbage-free(无垃圾模式)，Log4j2 &lt;a class=&#34;link&#34; href=&#34;https://so.csdn.net/so/search?q=API&amp;amp;spm=1001.2101.3001.7020&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;API&lt;/a&gt; 支持使用 Java 8 lambda，SLF4j 则在 2.0 版本。&lt;/p&gt;
+&lt;p&gt;总体来说，Logback 更加简单，并且与self4j 匹配更好（同一作者）。log4j2功能更加强大（filter过滤功能）&lt;/p&gt;
+&lt;h1 id=&#34;二日志输出规范&#34;&gt;二、日志输出规范&lt;/h1&gt;
+&lt;p&gt;日志级别&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;FATAL：系统级的错误，一旦出现，就意味着整个系统不能服务，是最严重的日志级别，一个进程的生命周期中应该只记录一次FATAL级别的日志，即该进程遇到无法恢复的错误而退出时&lt;/li&gt;
+&lt;li&gt;ERROR: 服务错误日志，项目还能正常使用，但是影响客户正常使用，而&lt;strong&gt;对于用户自己操作不当，如请求参数错误等等，是绝对不应该记为ERROR日志的&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;WARN: 该日志表示系统可能出现问题，也可能没有，这种情况如网络的波动等。对于那些目前还不是错误，然而不及时处理也会变为错误的情况，也可以记为WARN日志.&lt;/li&gt;
+&lt;li&gt;INFO： 系统正常运行日志。某个子系统的初始化，某个请求的成功执行等等；记录一些项目执行的关键节点。INFO日志不宜过多，通常情况下，INFO级别的日志应该不大于TRACE日志的10%；&lt;/li&gt;
+&lt;li&gt;DEBUG or TRACE：精确记录执行的过程，使用什么入参、执行顺序是什么、执行何种操作。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;日志输出建议&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;日志输出要精简，能够根据前后文推断出来的内容就不要再打了&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;日志的目的是为了不重现问题的情况下，根据日志输出对问题进行诊断。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;生产环境的日志级别尽可能的设置高一点，避免大量日志打印&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在执行核心动作时要打日志记录，记录为INFO&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;增删改&lt;/code&gt;操作需要打印参数日志（以便定位一些异常业务问题）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;条件分支&lt;/code&gt;需要打印日志：包括条件值以及重要参数；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;异常信息应该包括&lt;code&gt;两类信息&lt;/code&gt;：&lt;code&gt;案发现场信息&lt;/code&gt;和&lt;code&gt;异常堆栈信息&lt;/code&gt;。如果不处理，那么通过关键字&lt;strong&gt;throws/throw&lt;/strong&gt; 往上抛出，由父级方法处理&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;不允许记录日志后又抛出异常&lt;/code&gt;，因为这样会多次记录日志&lt;/p&gt;
+&lt;p&gt;反例&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;virtualIpPortCrash&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;error&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;接入虚拟IP端口冲突&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;throw&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; BusinessException&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;接入虚拟IP端口冲突&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;不允许出现 &lt;code&gt;e.printStackTrace&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用 {} 占位符&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;建议规范：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2019-12-01 00:00:00.000|pid|log-level|[svc-name,trace-id,span-id,user-id,biz-id]|thread-name|package-name.class-name : log message
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;打印异常&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;log.error(&amp;ldquo;异常信息: &amp;ldquo;, e);   能打印完整异常堆栈信息，建议使用，不要使用e.printStackTrace();&lt;/li&gt;
+&lt;li&gt;log.error(&amp;ldquo;异常信息: {}&amp;rdquo;, e.getMessage()); // 最简单的异常信息，没有异常类，没有堆栈&lt;/li&gt;
+&lt;li&gt;log.error(&amp;ldquo;异常信息: {}&amp;rdquo;, e.toString()); // 最简单的异常信息，有异常类，没有堆栈&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;三日志拓展&#34;&gt;三、日志拓展&lt;/h1&gt;
+&lt;h2 id=&#34;1-日志脱敏&#34;&gt;1、 日志脱敏&lt;/h2&gt;
+&lt;p&gt;链接：https://blog.csdn.net/qq_40885085/article/details/113385261&lt;/p&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>
